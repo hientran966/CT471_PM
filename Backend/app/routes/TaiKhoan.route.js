@@ -1,5 +1,5 @@
 const express = require("express");
-const auth = require("../controllers/auth.controller");
+const auth = require("../controllers/TaiKhoan.controller");
 
 const router = express.Router();
 

@@ -10,6 +10,10 @@ class AuthService {
     extractAuthData(payload) {
         const auth = {
             email: payload.email,
+            tenNV: payload.tenNV,
+            gioiTinh: payload.gioiTinh,
+            SDT: payload.SDT,
+            diaChi: payload.diaChi,
             vaiTro: payload.vaiTro ?? "NhanVien",
         };
 
@@ -25,16 +29,19 @@ class AuthService {
         const existingAuth = await this.Auth.findOne({ email: payload.email });
         if (existingAuth) throw new Error("Tài khoản đã tồn tại");
 
-        //Băm mật khẩu
+        // Băm mật khẩu
         const hashedPassword = await bcrypt.hash(payload.Password, 10);
+
+        // Tạo đối tượng tài khoản
         const auth = {
+            _id: payload.id ?? new ObjectId(), // Tự tạo ObjectId nếu không có id trong payload
             ...this.extractAuthData(payload),
             Password: hashedPassword,
         };
 
-        //Thêm tài khoản vào cơ sở dữ liệu
+        // Thêm tài khoản vào cơ sở dữ liệu
         const result = await this.Auth.insertOne(auth);
-        return { _id: result.insertedId, email: auth.email, vaiTro: auth.vaiTro };
+        return { _id: auth._id, email: auth.email, vaiTro: auth.vaiTro };
     }
 
     //Hàm này dùng để tìm kiếm tài khoản

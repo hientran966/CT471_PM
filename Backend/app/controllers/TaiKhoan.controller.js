@@ -1,6 +1,6 @@
 const ApiError = require("../api-error");
 const MongoDB = require("../utils/mongodb.util");
-const AuthService = require("../services/auth.service");
+const AuthService = require("../services/TaiKhoan.service");
 
 //Tạo tài khoản
 exports.create = async (req, res, next) => {

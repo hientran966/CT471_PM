@@ -1,7 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 const ApiError = require("./app/api-error");
-const authRoute = require("./app/routes/auth.route");
+const authRoute = require("./app/routes/TaiKhoan.route");
+const projectRoute = require("./app/routes/DuAn.route");
 
 const app = express();
 
@@ -13,6 +14,7 @@ app.get("/", (req, res) => {
 });
 // Import routes
 app.use("/api/auth", authRoute);
+app.use("/api/project", projectRoute);
 
 //handle 404
 app.use((req, res, next) => {
