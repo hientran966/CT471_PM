@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const ApiError = require("./app/api-error");
-
+const authRoute = require("./app/routes/auth.route");
 
 const app = express();
 
@@ -12,6 +12,7 @@ app.get("/", (req, res) => {
     res.json({ message: "Ứng dụng quản lý công việc."});
 });
 // Import routes
+app.use("/api/auth", authRoute);
 
 //handle 404
 app.use((req, res, next) => {
