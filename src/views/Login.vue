@@ -49,9 +49,15 @@ export default {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-size: cover;
   text-align: center;
   padding: 20px;
+  position: fixed;
+  top: 10%;
+  left: 35%;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  width: 400px;
+  height: 500px;
 }
 
 h4 {

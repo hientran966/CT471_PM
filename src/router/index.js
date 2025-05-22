@@ -1,11 +1,10 @@
-import Login from "@/views/Login.vue";
 import { createWebHistory, createRouter } from "vue-router";
 
 const routes = [
   {
     path: "/",
     name: "login",
-    component: Login,
+    component: () => import("@/views/Login.vue"),
   },
   {
     path: "/:pathMatch(.*)*",

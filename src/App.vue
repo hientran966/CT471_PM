@@ -14,8 +14,8 @@ export default {
 </script>
 
 <template>
-  <router-view />
+  <AppHeader v-if="!isLoginPage" />
+  <div class="container" style="margin-left: 50px;">
+    <router-view />
+  </div>
 </template>
-
-<style>
-</style>
