@@ -1,38 +1,18 @@
-<script>
-export default {
-    props: {
-        modelValue: { type: String, default: "" },
-    }, 
-    emits: ["submit", "update:modelValue"],
-    methods: {
-        updateModelValue(e) {
-          this.$emit("update:modelValue", e.target.value);
-        },
-        submit() {
-           this.$emit("submit");
-        },
-    },
-};
-</script>
-
 <template>
-    <div class="input-group">
-        <input
-         type="text"
-         class="form-control"
-         placeholder="Nhập thông tin cần tìm"
-         :value="modelValue"
-         @input="updateModelValue"
-         @keyup.enter="submit"
-        />
-        <div class="input-group-append">
-            <button
-             class="btn btn-outline-secondary"
-             type="button"
-             @click="submit"
-            >
-                <i class="fas fa-search"></i> Tìm kiếm
-            </button>
-        </div>
-    </div>
+  <a-input-search
+    :value="modelValue"
+    @update:value="val => $emit('update:modelValue', val)"
+    placeholder="Nhập từ khóa tìm kiếm"
+    enter-button
+    @search="onSearch"
+  />
 </template>
+
+<script lang="ts" setup>
+    const props = defineProps<{ modelValue: string }>();
+    const emit = defineEmits(['update:modelValue', 'search']);
+
+    const onSearch = (searchValue: string) => {
+        emit('update:modelValue', searchValue);
+    };
+</script>

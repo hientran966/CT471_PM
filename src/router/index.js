@@ -13,9 +13,9 @@ const routes = [
   },
 
   {
-    path: "/accounts",
-    name: "account",
-    component: () => import("@/views/Account.vue"),
+    path: "/admin",
+    name: "admin",
+    component: () => import("@/views/Admin.vue"),
   }
 ];
 
@@ -28,7 +28,7 @@ router.beforeEach((to, from, next) => {
   const isAuthenticated = !!localStorage.getItem("user");
 
   if (to.name === "login" && isAuthenticated) {
-    next({ name: "account" });
+    next({ name: "admin" });
   } else {
     next();
   }

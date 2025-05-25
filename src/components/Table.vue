@@ -6,16 +6,24 @@
     :pagination="pagination"
     :loading="loading"
     @change="handleTableChange"
-  />
+  >
+    <template #bodyCell="{ column }">
+      <template v-if="column.dataIndex === 'account'">
+        <a-button type="primary" danger>Vô hiệu</a-button>
+      </template>
+    </template>
+  </a-table>
 </template>
 <script lang="ts" setup>
-  import { computed } from 'vue';
+  import { computed, watch } from 'vue';
   import type { TableProps } from 'ant-design-vue';
   import { usePagination } from 'vue-request';
 
   const props = defineProps<{
     columns: any[],
-    queryData: (params: any) => Promise<any[]>
+    queryData: (params: any) => Promise<any[]>,
+    searchText?: string
+    dateRange?: any
   }>();
 
   const {
@@ -49,8 +57,16 @@
       sortField: sorter.field,
       sortOrder: sorter.order,
       ...filters,
+      searchText: props.searchText,
     });
   };
+
+  watch(
+    () => props.searchText,
+    (val) => {
+      run({ searchText: val });
+    }
+  );
 </script>
 
 <style scoped>
@@ -59,5 +75,6 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     background-color: #fff;
     margin-top: 10px;
+    min-width: 1000px;
   }
 </style>
