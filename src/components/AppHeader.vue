@@ -9,7 +9,7 @@
     </div>
     <div class="navbar-nav flex-column" style="flex: 1;">
       <div class="nav-item">
-        <router-link :to="{ name: 'login' }" class="nav-link" style="color: #fff;">
+        <router-link :to="{ name: 'account' }" class="nav-link" style="color: #fff;">
           <UserOutlined style="font-size: 30px; text-align: center; margin-top: 10px; margin-left: 10px;"/>
         </router-link>
       </div>
