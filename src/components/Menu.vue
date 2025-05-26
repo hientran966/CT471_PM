@@ -2,7 +2,7 @@
   <a-menu
     v-model:openKeys="openKeys"
     v-model:selectedKeys="selectedKeys"
-    style="width: 256px"
+    style="width: 256px ; height: 100vh; border-right: 2px solid #e8e8e8;"
     mode="inline"
     :items="items"
     @click="handleClick"
@@ -27,3 +27,7 @@
     console.log('openKeys', val);
     });
 </script>
+
+<style scoped>
+
+</style>
