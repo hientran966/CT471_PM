@@ -16,7 +16,7 @@
             <template v-if="!user.avatar">{{ user.name?.charAt(0) || '?' }}</template>
         </a-avatar>
     </a-avatar-group>
-    <p><strong>Deadline:</strong> {{ task.ngayKT }}</p>
+    <p><strong>Deadline:</strong> {{ task.ngayKT ? dayjs(task.ngayKT).format("DD/MM/YYYY") : "" }}</p>
   </a-card>
 </template>
 
@@ -24,6 +24,7 @@
 import { ref, onMounted } from "vue";
 import AssignmentService from "@/services/PhanCong.service";
 import AccountService from "@/services/TaiKhoan.service";
+import dayjs from "dayjs";
 
 const props = defineProps<{
   task: {
@@ -32,6 +33,8 @@ const props = defineProps<{
     ngayKT?: string
   }
 }>();
+
+
 
 const participants = ref<{ name: string, avatar?: string }[]>([]);
 
