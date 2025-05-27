@@ -7,6 +7,13 @@
         </router-link>
       </div>
     </div>
+        <div class="navbar-nav flex-column" style="flex: 1;">
+      <div class="nav-item">
+        <router-link :to="{ name: 'task' }" class="nav-link" style="color: #fff;">
+          <HomeOutlined style="font-size: 30px; text-align: center; margin-top: 10px; margin-left: 10px;"/>
+        </router-link>
+      </div>
+    </div>
     <div class="navbar-nav flex-column" style="flex: 1;">
       <div class="nav-item">
         <router-link :to="{ name: 'account' }" class="nav-link" style="color: #fff;">

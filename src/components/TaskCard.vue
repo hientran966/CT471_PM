@@ -1,24 +1,54 @@
 <template>
-    <a-card title="<strong>Tên công việc</strong>" style="width: 300px;">
-        <template #extra><a href="#">Xem</a></template>
-        <p><strong>ID:</strong> CV000001</p>
-        <p><strong>Người tham gia:</strong></p>
-        <a-avatar-group :max-count="2" :max-style="{ color: '#f56a00', backgroundColor: '#fde3cf' }">
-            <a-avatar src="https://xsgames.co/randomusers/avatar.php?g=pixel&key=2" />
-            <a-avatar style="background-color: #1890ff">K</a-avatar>
-            <a-tooltip title="Ant User" placement="top">
-                <a-avatar style="background-color: #87d068">
-                    <template #icon><UserOutlined /></template>
-                </a-avatar>
-            </a-tooltip>
-            <a-avatar style="background-color: #1890ff">
-                <template #icon><AntDesignOutlined /></template>
-            </a-avatar>
-        </a-avatar-group>
-        <p><strong>Deadline:</strong>1/1/2025</p>
-    </a-card>
+    <a-card style="width: 300px;">
+      <template #title>
+        <strong>{{ task.tenCV }}</strong>
+      </template>
+    <template #extra><a href="#">Xem</a></template>
+    <p><strong>ID:</strong> {{ task.id }}</p>
+    <p><strong>Người tham gia:</strong></p>
+    <a-avatar-group :max-count="2" :max-style="{ color: '#f56a00', backgroundColor: '#fde3cf' }">
+        <a-avatar
+            v-for="(user, idx) in participants"
+            :key="idx"
+            :src="user.avatar"
+            :style="!user.avatar ? { backgroundColor: '#1890ff' } : undefined"
+            >
+            <template v-if="!user.avatar">{{ user.name?.charAt(0) || '?' }}</template>
+        </a-avatar>
+    </a-avatar-group>
+    <p><strong>Deadline:</strong> {{ task.ngayKT }}</p>
+  </a-card>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { ref, onMounted } from "vue";
+import AssignmentService from "@/services/PhanCong.service";
+import AccountService from "@/services/TaiKhoan.service";
 
+const props = defineProps<{
+  task: {
+    id: string,
+    tenCV: string,
+    ngayKT?: string
+  }
+}>();
+
+const participants = ref<{ name: string, avatar?: string }[]>([]);
+
+onMounted(async () => {
+  try {
+    const assignments = await AssignmentService.getAssignmentsByTask(props.task.id);
+
+    const promises = assignments.map(async (a) => {
+      const user = await AccountService.getAccountById(a.idNguoiNhan);
+      return {
+        name: user?.tenNV || "Không rõ",
+        avatar: `/api/auth/avatar/${a.idNguoiNhan}`
+      };
+    });
+    participants.value = await Promise.all(promises);
+  } catch (err) {
+    participants.value = [];
+  }
+});
 </script>
