@@ -29,6 +29,12 @@ const routes = [
     name: "task",
     component: () => import("@/views/Task.vue"),
   },
+
+  {
+    path: "/project",
+    name: "project",
+    component: () => import("@/views/Project.vue"),
+  },
 ];
 
 const router = createRouter ({

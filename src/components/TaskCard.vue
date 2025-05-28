@@ -8,6 +8,7 @@
     <p><strong>Người tham gia:</strong></p>
     <a-avatar-group :max-count="2" :max-style="{ color: '#f56a00', backgroundColor: '#fde3cf' }">
         <a-avatar
+            v-if="participants"
             v-for="(user, idx) in participants"
             :key="idx"
             :src="user.avatar"

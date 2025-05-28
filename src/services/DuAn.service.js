@@ -1,33 +1,30 @@
 import createApiClient from "./api.service";
 
-class TaskService {
-    constructor(baseUrl = "/api/congviec") {
+class ProjectService {
+    constructor(baseUrl = "/api/duan") {
         this.api = createApiClient(baseUrl);
     }
 
-    async createTask(data) {
+    async createProject(data) {
         return (await this.api.post("/", data)).data;
     }
 
-    async getTaskById(id) {
+    async getProjectById(id) {
         return (await this.api.get(`/${id}`)).data;
     }
 
-    async updateTask(id, data) {
+    async updateProject(id, data) {
         return (await this.api.put(`/${id}`, data)).data;
     }
 
-    async deleteTask(id) {
+    async deleteProject(id) {
         return (await this.api.delete(`/${id}`)).data;
     }
 
-    async getAllTasks() {
+    async getAllProjects() {
         return (await this.api.get("/")).data;
     }
-
-    async getTasksByProject(id) {
-        return (await this.api.get(`/project/${id}`)).data;
-    }
+    
 }
 
-export default new TaskService();
+export default new ProjectService();

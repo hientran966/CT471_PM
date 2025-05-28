@@ -6,6 +6,8 @@
     :pagination="pagination"
     :loading="loading"
     @change="handleTableChange"
+    :row-class-name="() => 'clickable-row'"
+    :customRow="onRow"
   >
     <template #bodyCell="{ column }">
       <template v-if="column.dataIndex === 'account'">
@@ -25,6 +27,8 @@
     searchText?: string
     dateRange?: any
   }>();
+
+  const emit = defineEmits(['row-click']);
 
   const {
     data: dataSource,
@@ -60,6 +64,12 @@
       searchText: props.searchText,
     });
   };
+
+  function onRow(record) {
+    return {
+      onClick: () => emit('row-click', record)
+    };
+  }
 
   watch(
     () => props.searchText,

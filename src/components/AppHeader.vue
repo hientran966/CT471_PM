@@ -21,6 +21,13 @@
         </router-link>
       </div>
     </div>
+    <div class="navbar-nav flex-column" style="flex: 1;">
+      <div class="nav-item">
+        <router-link :to="{ name: 'project' }" class="nav-link" style="color: #fff;">
+          <FolderOutlined style="font-size: 30px; text-align: center; margin-top: 10px; margin-left: 10px;"/>
+        </router-link>
+      </div>
+    </div>
     <div class="navbar-nav flex-column" style="margin-bottom: 20px; position: absolute; bottom: 0; width: 100%;">
       <div class="nav-item" v-if="isLogin">
       <a class="nav-link" @click="logout" style="color: #fff;">
@@ -32,12 +39,13 @@
 </template>
 
 <script>
-import { UserOutlined, HomeOutlined, LogoutOutlined } from "@ant-design/icons-vue";
+import { UserOutlined, HomeOutlined, LogoutOutlined, FolderOutlined } from "@ant-design/icons-vue";
 export default {
   components: {
     UserOutlined,
     HomeOutlined,
     LogoutOutlined,
+    FolderOutlined
   },
   data() {
     return {

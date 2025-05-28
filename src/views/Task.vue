@@ -8,17 +8,22 @@
             />
         </div>
         <div class="col-8">
-            <AllTask />
+            <AllTask :projectId="projectId"/>
         </div>
     </div>
 </template>
 
 <script setup>
+import { useRoute } from "vue-router";
 import AllTask from '@/components/AllTask.vue';
 import Menu from '@/components/Menu.vue';
-import { ref } from "vue";
-import { h } from "vue";
+import { ref, h, onMounted, computed } from "vue";
 import { SettingOutlined } from "@ant-design/icons-vue";
+import ProjectService from "@/services/DuAn.service";
+
+const route = useRoute();
+const projectId = computed(() => route.query.projectId || "");
+const items = ref([]);
 
 function getItem(label, key, icon, children, type) {
   return {
@@ -30,14 +35,20 @@ function getItem(label, key, icon, children, type) {
   };
 }
 
-const items = [
-  getItem("Danh Sách Dự Án", "sub4", () => h(SettingOutlined), [
-    getItem("Dự Án 1", "1"),
-    getItem("Dự Án 2", "2"),
-    getItem("Dự Án 3", "3"),
-  ]),
-  getItem("Temp", "3")
-];
+onMounted(async () => {
+  const projects = await ProjectService.getAllProjects();
+  items.value = [
+    getItem(
+      "Temp",
+      "sub4",
+      () => h(SettingOutlined),
+      projects.map((project, idx) =>
+        getItem("Temp", String(idx + 1))
+      )
+    ),
+    getItem("Temp", "3"),
+  ];
+});
 
 const activeKey = ref("1");
 
