@@ -3,18 +3,20 @@
       <template #title>
         <strong>{{ task.tenCV }}</strong>
       </template>
-    <template #extra><a href="#">Xem</a></template>
+    <template #extra>
+      <a @click.prevent="$router.push({ name: 'assign', query: { taskId: task.id, projectId: projectId } })" href="#">Xem</a>
+    </template>
     <p><strong>ID:</strong> {{ task.id }}</p>
     <p><strong>Người tham gia:</strong></p>
     <a-avatar-group :max-count="2" :max-style="{ color: '#f56a00', backgroundColor: '#fde3cf' }">
         <a-avatar
-            v-if="participants"
-            v-for="(user, idx) in participants"
-            :key="idx"
-            :src="user.avatar"
-            :style="!user.avatar ? { backgroundColor: '#1890ff' } : undefined"
-            >
-            <template v-if="!user.avatar">{{ user.name?.charAt(0) || '?' }}</template>
+          v-if="participants"
+          v-for="(user, idx) in participants"
+          :key="idx"
+          :src="user.avatar ? user.avatar : defaultAvatar"
+          :style="!user.avatar ? { backgroundColor: '#1890ff' } : undefined"
+        >
+          <template v-if="!user.avatar">{{ defaultAvatar }}</template>
         </a-avatar>
     </a-avatar-group>
     <p><strong>Deadline:</strong> {{ task.ngayKT ? dayjs(task.ngayKT).format("DD/MM/YYYY") : "" }}</p>
@@ -32,10 +34,11 @@ const props = defineProps<{
     id: string,
     tenCV: string,
     ngayKT?: string
-  }
+  },
+  projectId
 }>();
 
-
+const defaultAvatar = "/api/auth/avatar/AC000001"; 
 
 const participants = ref<{ name: string, avatar?: string }[]>([]);
 
@@ -43,14 +46,20 @@ onMounted(async () => {
   try {
     const assignments = await AssignmentService.getAssignmentsByTask(props.task.id);
 
-    const promises = assignments.map(async (a) => {
+    const users = await Promise.all(assignments.map(async (a) => {
       const user = await AccountService.getAccountById(a.idNguoiNhan);
       return {
+        id: a.idNguoiNhan,
         name: user?.tenNV || "Không rõ",
         avatar: `/api/auth/avatar/${a.idNguoiNhan}`
       };
-    });
-    participants.value = await Promise.all(promises);
+    }));
+
+    const unique = users.filter(
+      (u, i, arr) => arr.findIndex(x => x.id === u.id) === i
+    );
+
+    participants.value = unique;
   } catch (err) {
     participants.value = [];
   }

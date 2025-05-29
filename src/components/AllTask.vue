@@ -16,7 +16,7 @@
           :key="task.id"
           :span="8"
         >
-          <TaskCard :task="task" />
+          <TaskCard :task="task" :projectId="projectId" />
         </a-col>
       </a-row>
     </a-space>

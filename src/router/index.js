@@ -35,6 +35,12 @@ const routes = [
     name: "project",
     component: () => import("@/views/Project.vue"),
   },
+
+  {
+    path: "/assign",
+    name: "assign",
+    component: () => import("@/views/Assign.vue"),
+  },
 ];
 
 const router = createRouter ({

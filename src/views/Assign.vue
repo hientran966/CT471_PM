@@ -8,20 +8,22 @@
             />
         </div>
         <div class="col-8">
-            <AllTask :projectId="projectId"/>
+            <AllAssign :taskId="taskId"/>
         </div>
     </div>
 </template>
 
 <script setup>
 import { useRoute } from "vue-router";
-import AllTask from '@/components/AllTask.vue';
-import Menu from '@/components/Menu.vue';
 import { ref, h, onMounted, computed } from "vue";
+import AllAssign from '@/components/AllAssign.vue';
+import Menu from '@/components/Menu.vue';
 import { SettingOutlined } from "@ant-design/icons-vue";
+import TaskService from "@/services/CongViec.service";
 import ProjectService from "@/services/DuAn.service";
 
 const route = useRoute();
+const taskId = computed(() => route.query.taskId || "");
 const projectId = computed(() => route.query.projectId || "");
 const items = ref([]);
 
@@ -36,13 +38,12 @@ function getItem(label, key, icon, children, type) {
 }
 
 onMounted(async () => {
-  const projects = await ProjectService.getAllProjects();
+  const tasks = await TaskService.getAllTasks();
+  const project = await ProjectService.getProjectById(projectId.value);
+  const projectName = project?.tenDA || "Chọn dự án";
   items.value = [
     getItem(
-      h('b', projectId.value
-        ? projects.find(p => p.id === projectId.value)?.tenDA || "Chọn dự án"
-        : "Chọn dự án"
-      ),
+      h('b', projectName),
       "projectName",
       null
     ),
@@ -50,7 +51,7 @@ onMounted(async () => {
       "Temp",
       "sub4",
       () => h(SettingOutlined),
-      projects.map((project, idx) =>
+      tasks.map((task, idx) =>
         getItem("Temp", String(idx + 1))
       )
     ),

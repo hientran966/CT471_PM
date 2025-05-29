@@ -28,6 +28,10 @@ class AssignmentService {
     async getAssignmentsByTask(task) {
         return (await this.api.get(`/task/${task}`)).data;
     }
+
+    async getFullTransferChain(id) {
+        return (await this.api.get(`/${id}/chain`)).data;
+    }
 }
 
 export default new AssignmentService();

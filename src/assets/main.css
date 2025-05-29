@@ -2,6 +2,8 @@
 
 #app {
   font-weight: normal;
+  background-color: rgb(255, 244, 244);
+  width: 100vw;
 }
 
 a,
