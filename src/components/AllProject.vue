@@ -24,6 +24,7 @@ import AccountService from "@/services/TaiKhoan.service";
 import { h, ref } from "vue";
 import dayjs from "dayjs";
 import { PlusOutlined } from "@ant-design/icons-vue";
+import { Tooltip } from "ant-design-vue";
 import { useRouter } from "vue-router";
 
 const searchText = ref("");
@@ -56,18 +57,16 @@ const columns = [
       const manager = record.manager;
       if (!manager) return "";
       return h(
-        "span",
-        {},
-        [
-          h(
-            "img",
-            {
+        Tooltip,
+        { title: manager.tenNV },
+        {
+          default: () =>
+            h("img", {
               src: `/api/auth/avatar/${manager.id}`,
               style: "width:32px;height:32px;border-radius:50%;margin-right:8px;object-fit:cover;",
-              alt: manager.tenNV
-            }
-          ),
-        ]
+              alt: manager.tenNV,
+            }),
+        }
       );
     }
   },
@@ -83,14 +82,17 @@ const columns = [
         { style: "display:flex;gap:4px;" },
         record.participants.map(user =>
           h(
-            "img",
+            Tooltip,
+            { title: user.tenNV },
             {
-              key: user.id,
-              src: `/api/auth/avatar/${user.id}`,
-              style: "width:32px;height:32px;border-radius:50%;object-fit:cover;",
-              alt: user.tenNV,
-              title: user.tenNV,
-              onError: (e) => { e.target.src = defaultAvatar; }
+              default: () =>
+                h("img", {
+                  key: user.id,
+                  src: `/api/auth/avatar/${user.id}`,
+                  style: "width:32px;height:32px;border-radius:50%;object-fit:cover;",
+                  alt: user.tenNV,
+                  onError: (e) => { e.target.src = defaultAvatar; }
+                }),
             }
           )
         )

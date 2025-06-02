@@ -1,16 +1,17 @@
 <template>
-    <div class="row">
-        <div class="col-4">
-        <Menu 
-            :items="items"
-            @click="onMenuClick"
-            style="max-height: 100%;"
-            />
-        </div>
-        <div class="col-8">
-            <AllTask :projectId="projectId"/>
-        </div>
+  <div class="row">
+    <div class="col-4">
+    <Menu 
+        :items="items"
+        @click="onMenuClick"
+        style="max-height: 100%;"
+        />
     </div>
+    <div class="col-8">
+      <AllTask :projectId="projectId"/>
+    </div>  
+  </div>
+
 </template>
 
 <script setup>
@@ -47,12 +48,8 @@ onMounted(async () => {
       null
     ),
     getItem(
-      "Temp",
-      "sub4",
-      () => h(SettingOutlined),
-      projects.map((project, idx) =>
-        getItem("Temp", String(idx + 1))
-      )
+      "Danh sách công việc",
+      "1"
     ),
     getItem("Temp", "3"),
   ];

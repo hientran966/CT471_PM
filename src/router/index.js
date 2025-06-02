@@ -41,6 +41,12 @@ const routes = [
     name: "assign",
     component: () => import("@/views/Assign.vue"),
   },
+  
+  {
+    path: "/file",
+    name: "file",
+    component: () => import("@/views/File.vue"),
+  },
 ];
 
 const router = createRouter ({

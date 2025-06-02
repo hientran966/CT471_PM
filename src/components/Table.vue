@@ -11,7 +11,12 @@
   >
     <template #bodyCell="{ column }">
       <template v-if="column.dataIndex === 'account'">
-        <a-button type="primary" danger>Vô hiệu</a-button>
+        <a-button type="primary" danger size="small">
+          <StopOutlined />
+        </a-button>
+        <a-button type="primary" success size="small">
+          <EditOutlined />
+        </a-button>
       </template>
     </template>
   </a-table>
@@ -20,7 +25,7 @@
   import { computed, watch } from 'vue';
   import type { TableProps } from 'ant-design-vue';
   import { usePagination } from 'vue-request';
-
+  import { StopOutlined, EditOutlined } from "@ant-design/icons-vue";
   const props = defineProps<{
     columns: any[],
     queryData: (params: any) => Promise<any[]>,

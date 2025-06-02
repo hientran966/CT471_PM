@@ -1,10 +1,10 @@
 <template>
-    <a-card style="width: 300px;">
+    <a-card size="small" style="width: 230px;">
       <template #title>
         <strong>{{ task.tenCV }}</strong>
       </template>
     <template #extra>
-      <a @click.prevent="$router.push({ name: 'assign', query: { taskId: task.id, projectId: projectId } })" href="#">Xem</a>
+      <a @click.prevent="$router.push({ name: 'assign', query: { taskId: task.id } })" href="#">Xem</a>
     </template>
     <p><strong>ID:</strong> {{ task.id }}</p>
     <p><strong>Người tham gia:</strong></p>

@@ -1,5 +1,5 @@
 <template>
-    <div style="margin-top: 150px; width: 1000px; margin-left: auto; margin-right: auto;">
+    <div style="margin-top: 150px; margin-left: auto; margin-right: auto;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h1>Danh sách tài khoản</h1>
         <a-button type="primary">+</a-button>

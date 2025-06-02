@@ -1,5 +1,5 @@
 <template>
-  <div style="margin-top: 20px; width: 1000px; height: 100vh; margin-left: auto; margin-right: auto;">
+  <div style="margin-top: 20px; width: 1000px; margin-left: auto; margin-right: auto;">
     <a-space direction="vertical" size="30" style="width: 100%;">
       <InputSearch v-model="searchText" />
       <a-row :gutter="[16, 16]" style="margin-bottom: 20px; margin-top: 20px;">

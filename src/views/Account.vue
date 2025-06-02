@@ -1,5 +1,5 @@
 <template>
-<div class="row" style="display: flex; justify-content: center; align-items: center; width: calc(100vw - 50px); height: 200px; background-color: rgb(255, 208, 208); position: relative;">
+<div class="row" style="display: flex; justify-content: center; align-items: center; width: calc(100vw - 60px); height: 200px; background-color: rgb(255, 208, 208); position: relative;">
     <a-avatar :size="150" style="margin-left: 20px;">
         <template #icon><UserOutlined /></template>
     </a-avatar>

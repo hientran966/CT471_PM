@@ -4,7 +4,7 @@
       <strong>{{ assign.moTa }}</strong>
     </template>
     <template #extra>
-      <a href="#">Xem</a>
+      <a type="link" @click="transferHistoryRef?.showModal()" href="#">Xem</a>
     </template>
     <div style="display: flex; align-items: center; gap: 8px;">
       <template v-for="(user, idx) in participants" :key="idx">
@@ -28,12 +28,14 @@
     </div>
     <p><strong>Trạng thái:</strong> {{ assign.trangThai }}</p>
   </a-card>
+  <TransferHistory ref="transferHistoryRef" :transfers="[...allAssignments].reverse()" />
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import AccountService from "@/services/TaiKhoan.service";
 import AssignService from "@/services/PhanCong.service";
+import TransferHistory from './TransferHistory.vue';
 import dayjs from "dayjs";
 
 const props = defineProps<{
@@ -47,51 +49,62 @@ const props = defineProps<{
   }
 }>();
 
-
-
 const participants = ref<{ name: string, avatar?: string }[]>([]);
+const transferHistoryRef = ref();
+const allAssignments = ref<any[]>([]);
 
 onMounted(async () => {
   try {
     // Lấy toàn bộ lịch sử chuyển giao
     let currentId = props.assign.id;
     const assignmentIds = [currentId];
-    const allTransfers = await AssignService.getFullTransferChain(props.assign.id);
+    const transferChain = await AssignService.getFullTransferChain(props.assign.id);
 
     // Duyệt ngược qua các chuyển giao để lấy chuỗi phân công
     while (true) {
-      // Tìm bản ghi chuyển giao có idSau = currentId
-      const found = Array.isArray(allTransfers)
-        ? allTransfers.find(item => item.idSau === currentId)
+      const found = Array.isArray(transferChain)
+        ? transferChain.find(item => item.idSau === currentId)
         : null;
       if (found && found.idTruoc) {
-        assignmentIds.unshift(found.idTruoc); // Thêm vào đầu mảng
+        assignmentIds.unshift(found.idTruoc);
         currentId = found.idTruoc;
       } else {
         break;
       }
     }
 
-    // Lấy thông tin người nhận của từng phân công
-    const users = await Promise.all(
-      assignmentIds.map(async (id) => {
-        const assign = await AssignService.getAssignmentById(id);
-        if (assign && assign.idNguoiNhan) {
-          const user = await AccountService.getAccountById(assign.idNguoiNhan);
-          return {
-            name: user?.tenNV || "Không rõ",
-            avatar: `/api/auth/avatar/${assign.idNguoiNhan}`
-          };
-        }
-        return null;
-      })
-    );
-    // Loại bỏ null và trùng lặp theo id avatar
-    participants.value = users.filter(Boolean).filter(
+    // Lấy thông tin phân công cho từng id
+    allAssignments.value = (
+      await Promise.all(
+        assignmentIds.map(async (id) => {
+          const assign = await AssignService.getAssignmentById(id);
+          if (assign) {
+            const user = assign.idNguoiNhan
+              ? await AccountService.getAccountById(assign.idNguoiNhan)
+              : null;
+            return {
+              ...assign,
+              nguoiNhan: user,
+            };
+          }
+          return null;
+        })
+      )
+    ).filter(Boolean);
+
+    // Lấy thông tin người nhận cho avatar group (nếu cần)
+    const users = allAssignments.value.map(a => ({
+      name: a.nguoiNhan?.tenNV || "Không rõ",
+      avatar: a.nguoiNhan?.id
+        ? `/api/auth/avatar/${a.nguoiNhan.id}`
+        : undefined
+    }));
+    participants.value = users.filter(
       (v, i, a) => a.findIndex(t => t.avatar === v.avatar) === i
     );
   } catch (err) {
     participants.value = [];
+    allAssignments.value = [];
   }
 });
 </script>
