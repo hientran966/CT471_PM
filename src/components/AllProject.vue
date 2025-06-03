@@ -1,8 +1,8 @@
 <template>
-    <div style="margin-top: 20px; width: calc(100vw - 75px); margin-left: auto; margin-right: auto;">
+    <div style="margin-top: 20px; width: calc(100vw - 75px); margin-left: 10px; margin-right: auto;">
       <a-space size="30" direction="vertical">
         <h5>Danh sách dự án</h5>
-        <a-button type="primary" :icon="h(PlusOutlined)">Thêm Mới</a-button>
+        <a-button type="primary" :icon="h(PlusOutlined)" @click="addProject?.showModal()">Thêm Mới</a-button>
       </a-space>
       <InputSearch v-model="searchText" style="margin-top: 10px;"/>
       <Table
@@ -12,15 +12,19 @@
         @row-click="onRowClick"
       />
     </div>
+    <AddProject ref="addProject" ></AddProject>
 </template>
 
 <script setup>
 import InputSearch from "@/components/InputSearch.vue";
 import Table from "@/components/Table.vue";
+import AddProject from "@/components/AddProject.vue";
+
 import ProjectService from "@/services/DuAn.service"
 import AssignmentService from "@/services/PhanCong.service";
 import TaskService from "@/services/CongViec.service";
 import AccountService from "@/services/TaiKhoan.service";
+
 import { h, ref } from "vue";
 import dayjs from "dayjs";
 import { PlusOutlined } from "@ant-design/icons-vue";
@@ -28,6 +32,7 @@ import { Tooltip } from "ant-design-vue";
 import { useRouter } from "vue-router";
 
 const searchText = ref("");
+const addProject = ref("");
 const router = useRouter();
 
 function onRowClick(record) {

@@ -1,13 +1,13 @@
 <template>
-  <nav class="vertical-header bg-dark" v-if="isLogin" style="height: 100vh; width: 60px; position: fixed; top: 0; left: 0;">
-    <div class="navbar-nav flex-column" style="flex: 1;">
+  <nav class="vertical-header bg-dark" v-if="isLogin" style="height: 100vh; width: 60px; position: fixed; top: 0; left: 0; background-attachment: fixed;">
+    <div class="navbar-nav flex-column" style="flex: 1;" v-if="isAdmin">
       <div class="nav-item">
         <router-link :to="{ name: 'login' }" class="nav-link" style="color: #fff;">
             <HomeOutlined style="font-size: 30px; text-align: center; margin-top: 10px; margin-left: 10px;"/>
         </router-link>
       </div>
     </div>
-        <div class="navbar-nav flex-column" style="flex: 1;">
+    <div class="navbar-nav flex-column" style="flex: 1;">
       <div class="nav-item">
         <router-link :to="{ name: 'notfound' }" class="nav-link" style="color: #fff;">
           <HomeOutlined style="font-size: 30px; text-align: center; margin-top: 10px; margin-left: 10px;"/>
@@ -39,6 +39,7 @@
 </template>
 
 <script>
+import Admin from "@/views/Admin.vue";
 import { UserOutlined, HomeOutlined, LogoutOutlined, FolderOutlined } from "@ant-design/icons-vue";
 export default {
   components: {
@@ -51,6 +52,13 @@ export default {
     return {
       isLogin: false,
     };
+  },
+  computed: {
+    isAdmin() {
+      const user = JSON.parse(localStorage.getItem("user"));
+      return user && user.vaiTro === "Admin";
+    },
+
   },
   created() {
     this.checkLogin();

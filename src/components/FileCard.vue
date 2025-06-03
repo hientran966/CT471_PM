@@ -1,5 +1,5 @@
 <template>
-  <a-card hoverable style="width: 200px">
+  <a-card hoverable style="width: 200px" size="small">
     <template #cover>
       <template v-if="isImage">
         <img alt="example" :src="fileSrc" />

@@ -4,7 +4,7 @@
         <strong>{{ task.tenCV }}</strong>
       </template>
     <template #extra>
-      <a @click.prevent="$router.push({ name: 'assign', query: { taskId: task.id } })" href="#">Xem</a>
+      <a @click.prevent="$router.push({ name: 'assign', query: { taskId: task.id, projectId: props.projectId } })" href="#">Xem</a>
     </template>
     <p><strong>ID:</strong> {{ task.id }}</p>
     <p><strong>Người tham gia:</strong></p>
@@ -20,6 +20,7 @@
         </a-avatar>
     </a-avatar-group>
     <p><strong>Deadline:</strong> {{ task.ngayKT ? dayjs(task.ngayKT).format("DD/MM/YYYY") : "" }}</p>
+    <a-progress :percent="task.tienDo" style="margin: 8px 0 0 0;" />
   </a-card>
 </template>
 
@@ -33,7 +34,8 @@ const props = defineProps<{
   task: {
     id: string,
     tenCV: string,
-    ngayKT?: string
+    ngayKT?: string,
+    tienDo: number
   },
   projectId
 }>();

@@ -1,17 +1,17 @@
 <template>
-  <div class="row">
-    <div class="col-4">
-    <Menu 
+  <div class="row" style="max-height: 100vh;">
+    <div class="col-4" style="background-attachment: fixed;">
+      <Menu 
         :items="items"
-        @click="onMenuClick"
+        :selectedKeys="[activeKey]"
+        @select="onMenuClick"
         style="max-height: 100%;"
-        />
+      />
     </div>
-    <div class="col-8">
+    <div class="col-8  all-task-scroll">
       <AllTask :projectId="projectId"/>
     </div>  
   </div>
-
 </template>
 
 <script setup>
@@ -61,3 +61,11 @@ function onMenuClick({ key }) {
   activeKey.value = key;
 }
 </script>
+
+<style scoped>
+.all-task-scroll {
+  height: 100vh;
+  overflow-y: auto;
+  background-attachment: scroll;
+}
+</style>

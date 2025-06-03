@@ -27,6 +27,7 @@
 import InputSearch from "@/components/InputSearch.vue";
 import TaskCard from "@/components/TaskCard.vue";
 import TaskService from "@/services/CongViec.service";
+import AssignService from "@/services/PhanCong.service"
 import { ref, watch } from "vue";
 
 const props = defineProps(['projectId']);
@@ -40,7 +41,25 @@ const loadData = async () => {
     return;
   }
   try {
-    tasks.value = await TaskService.getTasksByProject(props.projectId);
+    const rawTasks = await TaskService.getTasksByProject(props.projectId);
+
+    const tasksWithProgress = await Promise.all(
+      rawTasks.map(async (task) => {
+        const assignments = await AssignService.getAssignmentsByTask(task.id);
+
+        const totalWeight = assignments.reduce((sum, a) => sum + (a.doQuanTrong || 0), 0);
+
+        const totalProgress = assignments.reduce(
+          (sum, a) => sum + ((a.tienDoCaNhan || 0) * (a.doQuanTrong || 0)),
+          0
+        );
+
+        const tienDo =
+          totalWeight > 0 ? Math.round(totalProgress / totalWeight) : 0;
+        return { ...task, tienDo };
+      })
+    );
+    tasks.value = tasksWithProgress;
   } catch (error) {
     console.error("Error loading data:", error);
     tasks.value = [];

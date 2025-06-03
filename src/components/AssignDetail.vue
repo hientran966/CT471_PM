@@ -22,11 +22,15 @@
         </span>
       </template>
     </div>
+
     <div style="display: flex; justify-content: space-between;">
       <p style="margin-bottom: 0;"><strong>Ngày nhận:</strong> {{ assign.ngayNhan ? dayjs(assign.ngayNhan).format("DD/MM/YYYY") : "" }}</p>
       <p v-if="assign.ngayHoanTat" style="margin-bottom: 0;"><strong>Ngày hoàn tất:</strong> {{ dayjs(assign.ngayHoanTat).format("DD/MM/YYYY") }}</p>
     </div>
-    <p><strong>Trạng thái:</strong> {{ assign.trangThai }}</p>
+    <div style="display: flex; justify-content: space-between;">
+      <p><strong>Trạng thái:</strong> {{ assign.trangThai }}</p>
+      <a-progress :percent="assign.tienDoCaNhan" style="margin: 8px 0 0 0; width: 300px;" />
+    </div>
   </a-card>
   <TransferHistory ref="transferHistoryRef" :transfers="[...allAssignments].reverse()" />
 </template>
@@ -45,7 +49,8 @@ const props = defineProps<{
     trangThai: string,
     ngayNhan?: string,
     ngayHoanTat?: string,
-    idNguoiNhan: string
+    idNguoiNhan: string,
+    tienDoCaNhan: number
   }
 }>();
 

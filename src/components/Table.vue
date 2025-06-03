@@ -11,12 +11,14 @@
   >
     <template #bodyCell="{ column }">
       <template v-if="column.dataIndex === 'account'">
+        <a-space>
         <a-button type="primary" danger size="small">
           <StopOutlined />
         </a-button>
         <a-button type="primary" success size="small">
           <EditOutlined />
         </a-button>
+        </a-space>
       </template>
     </template>
   </a-table>

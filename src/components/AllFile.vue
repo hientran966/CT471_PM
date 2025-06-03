@@ -1,6 +1,6 @@
 <template>
-  <div style="margin-top: 20px; width: 1000px; margin-left: auto; margin-right: auto;">
-    <a-space direction="vertical" size="30" style="width: 100%;">
+  <div class="all-file-container">
+    <a-space direction="vertical" size="30">
       <h3>Tập tin</h3>
       <InputSearch v-model="searchText" />
       <br>
@@ -8,7 +8,7 @@
         <a-col
           v-for="file in files.filter(t => t.tenFile.toLowerCase().includes(searchText.toLowerCase()))"
           :key="file.id"
-          :span="5"
+          :span="6"
         >
           <FileCard :file="file"/>
         </a-col>
@@ -22,20 +22,38 @@ import InputSearch from "@/components/InputSearch.vue";
 import FileCard from "@/components/FileCard.vue";
 import FileService from "@/services/File.service";
 import { ref, watch } from "vue";
+import { useRoute } from "vue-router";
 
 const props = defineProps(['taskId']);
+const route = useRoute();
 
 const searchText = ref("");
 const files = ref([]);
 
+const getTaskId = () => props.taskId || route.query.taskId || "";
+
 const loadData = async () => {
+  const taskId = getTaskId();
+  if (!taskId) {
+    files.value = [];
+    return;
+  }
   try {
-    files.value = await FileService.getFilesByTask(props.taskId);
+    files.value = await FileService.getFilesByTask(taskId);
   } catch (error) {
     console.error("Error loading data:", error);
     files.value = [];
   }
 };
 
-watch(() => props.taskId, loadData, { immediate: true });
+watch(() => getTaskId(), loadData, { immediate: true });
 </script>
+
+<style scoped>
+.all-file-container {
+  max-width: 1100px;
+  margin: 20px auto 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+</style>
