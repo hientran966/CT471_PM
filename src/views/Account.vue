@@ -6,8 +6,12 @@
         style="justify-content: center"
         size="middle"
       >
-        <a-avatar :size="150" style="margin-top: 20px">
-          <template #icon><UserOutlined /></template>
+      <br>
+        <a-avatar
+        :src="avatar"
+        :size="150"
+        :style="!avatar ? { backgroundColor: '#1890ff' } : undefined"
+        >
         </a-avatar>
         <a-space>
           <a-button type="primary"><EditOutlined /></a-button>
@@ -33,20 +37,25 @@
 </template>
 
 <script setup>
-import { UserOutlined, EditOutlined } from "@ant-design/icons-vue";
+import { EditOutlined } from "@ant-design/icons-vue";
 import AAvatar from "ant-design-vue/es/avatar";
 import AButton from "ant-design-vue/es/button";
 import ASpace from "ant-design-vue/es/space";
 import ACard from "ant-design-vue/es/card";
 import AuthService from "@/services/TaiKhoan.service";
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 
 const user = ref({
+  id: "",
   tenNV: "",
   email: "",
   SDT: "",
   diaChi: "",
   vaiTro: "",
+});
+
+const avatar = computed(() => {
+  return user.value.id ? `/api/auth/avatar/${user.value.id}` : undefined;
 });
 
 onMounted(async () => {

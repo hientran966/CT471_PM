@@ -9,7 +9,7 @@
       />
     </div>
     <div class="col-8  all-task-scroll">
-      <AllFile :taskId="getTaskId()" /> 
+      <FileList :taskId="getTaskId()" /> 
     </div>
   </div>
 </template>
@@ -18,7 +18,7 @@
 import { ref, watch, h, onMounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import ProjectService from "@/services/DuAn.service"
-import AllFile from "@/components/AllFile.vue";
+import FileList from "@/components/FileList.vue";
 import Menu from '@/components/Menu.vue';
 
 const props = defineProps(['taskId']);

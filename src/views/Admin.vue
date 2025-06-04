@@ -1,14 +1,14 @@
 <template>
   <div class="row">
-    <div class="col-4">
+    <div class="col-2">
       <Menu 
         :items="items"
         @click="onMenuClick"
         style="max-height: 100%;"
         />
     </div>
-    <div class="col-8">
-      <AllAcount v-if="activeKey === '1'" />
+    <div class="col-10">
+      <AccountList v-if="activeKey === '1'" />
       <div v-else-if="activeKey === '2'">Tài khoản đã khóa</div>
       <Calendar v-else-if="activeKey === '3'" />
     </div>
@@ -18,7 +18,7 @@
 <script setup>
 import { ref } from "vue";
 import Menu from "@/components/Menu.vue";
-import AllAcount from "@/components/AllAccount.vue";
+import AccountList from "@/components/AccountList.vue";
 import Calendar from "@/components/Calendar.vue";
 import { h } from "vue";
 import { SettingOutlined } from "@ant-design/icons-vue";

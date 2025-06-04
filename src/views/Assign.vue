@@ -9,7 +9,7 @@
       />
     </div>
     <div class="col-8  all-task-scroll">
-      <AllAssign :taskId="taskId" :projectId="projectId"/>
+      <AssignList :taskId="taskId" :projectId="projectId"/>
     </div>
   </div>
 </template>
@@ -18,7 +18,7 @@
 import { useRoute, useRouter } from "vue-router";
 import { ref, h, onMounted, computed } from "vue";
 import ProjectService from "@/services/DuAn.service"
-import AllAssign from '@/components/AllAssign.vue';
+import AssignList from '@/components/AssignList.vue';
 import Menu from '@/components/Menu.vue';
 
 const route = useRoute();

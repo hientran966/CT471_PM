@@ -2,23 +2,24 @@
     <div style="margin-top: 20px; width: calc(100vw - 75px); margin-left: 10px; margin-right: auto;">
       <a-space size="30" direction="vertical">
         <h5>Danh sách dự án</h5>
-        <a-button type="primary" :icon="h(PlusOutlined)" @click="addProject?.showModal()">Thêm Mới</a-button>
+        <a-button type="primary" :icon="h(PlusOutlined)" @click="projectForm?.showModal()">Thêm Mới</a-button>
       </a-space>
       <InputSearch v-model="searchText" style="margin-top: 10px;"/>
       <Table
+        ref="projectTable"
         :columns="columns"
         :queryData="queryData"
         :searchText="searchText"
         @row-click="onRowClick"
       />
     </div>
-    <AddProject ref="addProject" ></AddProject>
+    <ProjectForm ref="projectForm" @created="handleCreated"></ProjectForm>
 </template>
 
 <script setup>
 import InputSearch from "@/components/InputSearch.vue";
 import Table from "@/components/Table.vue";
-import AddProject from "@/components/AddProject.vue";
+import ProjectForm from "@/components/ProjectForm.vue";
 
 import ProjectService from "@/services/DuAn.service"
 import AssignmentService from "@/services/PhanCong.service";
@@ -32,7 +33,7 @@ import { Tooltip } from "ant-design-vue";
 import { useRouter } from "vue-router";
 
 const searchText = ref("");
-const addProject = ref("");
+const projectForm = ref("");
 const router = useRouter();
 
 function onRowClick(record) {
@@ -164,6 +165,11 @@ const queryData = async (params) => {
   }
 };
 
+const projectTable = ref(null);
+
+const handleCreated = () => {
+  projectTable.value?.reload?.();
+};
 </script>
 
 <style scoped></style>

@@ -1,10 +1,10 @@
 <template>
-  <AllProject />
+  <ProjectList />
 </template>
 
 <script setup>
 import { ref } from "vue";
-import AllProject from "@/components/AllProject.vue";
+import ProjectList from "@/components/ProjectList.vue";
 </script>
 
 <style scoped>

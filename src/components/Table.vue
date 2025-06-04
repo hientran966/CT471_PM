@@ -9,25 +9,19 @@
     :row-class-name="() => 'clickable-row'"
     :customRow="onRow"
   >
-    <template #bodyCell="{ column }">
-      <template v-if="column.dataIndex === 'account'">
-        <a-space>
-        <a-button type="primary" danger size="small">
-          <StopOutlined />
-        </a-button>
-        <a-button type="primary" success size="small">
-          <EditOutlined />
-        </a-button>
-        </a-space>
-      </template>
+    <template #bodyCell="{ column, record }">
+      <slot v-if="column.dataIndex === 'account'" name="actionSlot" :record="record" />
     </template>
   </a-table>
 </template>
 <script lang="ts" setup>
-  import { computed, watch } from 'vue';
+  import { computed, watch, ref } from 'vue';
   import type { TableProps } from 'ant-design-vue';
   import { usePagination } from 'vue-request';
-  import { StopOutlined, EditOutlined } from "@ant-design/icons-vue";
+  import { defineExpose } from 'vue';
+
+  const lastParams = ref<any>({});
+
   const props = defineProps<{
     columns: any[],
     queryData: (params: any) => Promise<any[]>,
@@ -62,14 +56,16 @@
     filters: any,
     sorter: any,
   ) => {
-    run({
+    const params = {
       results: pag.pageSize,
       page: pag?.current,
       sortField: sorter.field,
       sortOrder: sorter.order,
       ...filters,
       searchText: props.searchText,
-    });
+    };
+    lastParams.value = params;
+    run(params);
   };
 
   function onRow(record) {
@@ -81,9 +77,15 @@
   watch(
     () => props.searchText,
     (val) => {
-      run({ searchText: val });
+      const params = { ...lastParams.value, searchText: val };
+      lastParams.value = params;
+      run(params);
     }
   );
+
+  defineExpose({
+    reload: () => run(lastParams.value)
+  });
 </script>
 
 <style scoped>

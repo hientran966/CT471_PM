@@ -9,14 +9,14 @@
       />
     </div>
     <div class="col-8  all-task-scroll">
-      <AllTask :projectId="projectId"/>
+      <TaskList :projectId="projectId"/>
     </div>  
   </div>
 </template>
 
 <script setup>
 import { useRoute } from "vue-router";
-import AllTask from '@/components/AllTask.vue';
+import TaskList from '@/components/TaskList.vue';
 import Menu from '@/components/Menu.vue';
 import { ref, h, onMounted, computed } from "vue";
 import { SettingOutlined } from "@ant-design/icons-vue";

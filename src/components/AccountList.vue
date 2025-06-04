@@ -1,11 +1,25 @@
 <template>
-    <div style="margin-top: 150px; margin-left: auto; margin-right: auto;">
+    <div class="all-account-container">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h1>Danh sách tài khoản</h1>
         <a-button type="primary">+</a-button>
       </div>
       <InputSearch v-model="searchText" />
-      <Table :columns="columns" :queryData="queryData" :searchText="searchText" />
+      <Table
+        :columns="columns"
+        :queryData="queryData"
+        :searchText="searchText"
+        v-slot:actionSlot="{ record }"
+      >
+        <a-space>
+          <a-button type="primary" danger size="small" @click="handleDeactivate(record)">
+            <StopOutlined />
+          </a-button>
+          <a-button type="primary" size="small" @click="handleEdit(record)">
+            <EditOutlined />
+          </a-button>
+        </a-space>
+      </Table>
     </div>
 </template>
 
@@ -14,6 +28,7 @@ import InputSearch from "@/components/InputSearch.vue";
 import Table from "@/components/Table.vue";
 import AuthService from "@/services/TaiKhoan.service";
 import { ref } from "vue";
+import { StopOutlined, EditOutlined } from "@ant-design/icons-vue";
 
 const searchText = ref("");
 
@@ -88,7 +103,22 @@ const queryData = async (params) => {
   }
 };
 
+function handleEdit(record) {
+  console.log("Edit account", record);
+  // điều hướng đến form sửa hoặc mở modal
+}
 
+function handleDeactivate(record) {
+  console.log("Deactivate account", record);
+  // gọi API tạm ngưng hoặc xác nhận từ người dùng
+}
 </script>
 
-<style scoped></style>
+<style scoped>
+.all-account-container {
+  max-width: 900px;
+  margin: 20px auto 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+</style>
