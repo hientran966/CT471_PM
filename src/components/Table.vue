@@ -10,7 +10,15 @@
     :customRow="onRow"
   >
     <template #bodyCell="{ column, record }">
-      <slot v-if="column.dataIndex === 'account'" name="actionSlot" :record="record" />
+      <!-- Slot riêng cho trạng thái -->
+      <template v-if="column.dataIndex === 'trangThai'">
+        <slot name="statusSlot" :record="record" />
+      </template>
+
+      <!-- Slot cho tài khoản -->
+      <template v-else-if="column.dataIndex === 'account'">
+        <slot name="actionSlot" :record="record" />
+      </template>
     </template>
   </a-table>
 </template>
@@ -84,8 +92,15 @@
   );
 
   defineExpose({
-    reload: () => run(lastParams.value)
-  });
+  reload: () => {
+    const params = {
+      ...lastParams.value,
+      searchText: props.searchText,
+    };
+    lastParams.value = params;
+    run(params);
+  }
+});
 </script>
 
 <style scoped>

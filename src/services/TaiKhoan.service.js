@@ -37,6 +37,13 @@ class AuthService {
         return JSON.parse(localStorage.getItem("user"));
     }
     
+    async getDeactive() {
+        return (await this.api.get("/deactive")).data;
+    }
+
+    async recover(id) {
+        return (await this.api.put(`/deactive/${id}`)).data;
+    }
 }
 
 export default new AuthService();

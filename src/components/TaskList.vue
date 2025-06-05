@@ -7,7 +7,7 @@
           <h1>Danh sách công việc</h1>
         </a-col>
         <a-col :span="12" style="text-align: right;">
-          <a-button type="primary" @click="$router.push('/add-task')">Thêm công việc</a-button>
+          <a-button type="primary" @click="taskForm.showModal()">Thêm công việc</a-button>
         </a-col>
       </a-row>
       <a-row :gutter="[16, 16]">
@@ -16,22 +16,25 @@
           :key="task.id"
           :span="8"
         >
-          <TaskCard :task="task" :projectId="projectId" />
+          <TaskCard :task="task" :projectId="projectId" @saved="loadData"/>
         </a-col>
       </a-row>
     </a-space>
+    <TaskForm ref="taskForm" :projectId="projectId" @saved="loadData" />
   </div>
 </template>
 
 <script setup>
 import InputSearch from "@/components/InputSearch.vue";
 import TaskCard from "@/components/TaskCard.vue";
+import TaskForm from "@/components/TaskForm.vue";
 import TaskService from "@/services/CongViec.service";
 import AssignService from "@/services/PhanCong.service"
 import { ref, watch } from "vue";
 
 const props = defineProps(['projectId']);
 
+const taskForm = ref(null);
 const searchText = ref("");
 const tasks = ref([]);
 

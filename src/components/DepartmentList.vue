@@ -1,12 +1,12 @@
 <template>
     <div class="all-account-container">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h1>Danh sách tài khoản</h1>
-        <a-button type="primary" @click="accountForm?.showModal()">+</a-button>
+        <h1>Danh sách phòng ban</h1>
+        <a-button type="primary" @click="departmentForm?.showModal()">+</a-button>
       </div>
       <InputSearch v-model="searchText" />
       <Table
-        ref="projectTable"
+        ref="departmentTable"
         :columns="columns"
         :queryData="queryData"
         :searchText="searchText"
@@ -22,60 +22,45 @@
         </a-space>
       </Table>
     </div>
-    <AccountForm ref="accountForm" @created="handleCreated"/>
+    <DepartmentForm ref="departmentForm" @saved="handleCreated" />
 </template>
 
 <script setup>
 import InputSearch from "@/components/InputSearch.vue";
-import AccountForm from "./AccountForm.vue";
 import Table from "@/components/Table.vue";
-import AuthService from "@/services/TaiKhoan.service";
+import DepartmentForm from "@/components/DepartmentForm.vue";
+import DepartmentService from "@/services/PhongBan.service";
 import { ref } from "vue";
 import { StopOutlined, EditOutlined } from "@ant-design/icons-vue";
 
 const searchText = ref("");
-const accountForm = ref(null);
+const departmentForm = ref(null);
+const departmentTable = ref(null);
 
 const columns = [
-  { title: "Tên", dataIndex: "tenNV", sorter: true, width: "125px" },
+  { title: "Tên phòng ban", dataIndex: "tenPhong", sorter: true, width: "125px" },
   {
-    title: "Giới tính",
-    dataIndex: "gioiTinh",
+    title: "Phân quyền",
+    dataIndex: "phanQuyen",
     filters: [
-      { text: "Nam", value: "Nam" },
-      { text: "Nữ", value: "Nữ" },
+      { text: "Cao", value: "Cao" },
+      { text: "Trung", value: "Trung" },
+      { text: "Thấp", value: "Thấp" },
     ],
-    width: "95px",
+    width: "105px",
   },
-  { title: "Email", dataIndex: "email", width: "100px", ellipsis: true, },
-  { title: "Số điện thoại", dataIndex: "SDT", width: "110px" },
-  { title: "Địa chỉ", dataIndex: "diaChi", width: "100px", ellipsis: true, },
-  {
-    title: "Vai trò",
-    dataIndex: "vaiTro",
-    filters: [
-      { text: "Giám đốc", value: "Giám đốc" },
-      { text: "Trưởng Phòng", value: "Trưởng Phòng" },
-      { text: "Nhân Viên", value: "Nhân Viên" },
-      { text: "Admin", value: "Admin" },
-    ],
-    width: "110px",
-  },
-  { title: "Phòng ban", dataIndex: "idPhong", width: "100px", ellipsis: true, },
   { title: "Hành động", dataIndex: "account", width: "100px"},
 ];
 
 const queryData = async (params) => {
   try {
-    let res = await AuthService.getAllAccounts();
+    let res = await DepartmentService.getAllDepartments();
 
     if (params?.searchText && params.searchText.trim() !== "") {
       const keyword = params.searchText.trim().toLowerCase();
       res = res.filter(acc =>
-        acc.tenNV?.toLowerCase().includes(keyword) ||
-        acc.email?.toLowerCase().includes(keyword) ||
-        acc.SDT?.toLowerCase().includes(keyword) ||
-        acc.diaChi?.toLowerCase().includes(keyword)
+        acc.tenPhong?.toLowerCase().includes(keyword) ||
+        acc.phanQuyen?.toLowerCase().includes(keyword)
       );
     }
 
@@ -92,13 +77,10 @@ const queryData = async (params) => {
       });
     }
 
-    if (params?.gioiTinh && params.gioiTinh.length > 0) {
-      res = res.filter(acc => params.gioiTinh.includes(acc.gioiTinh));
+    if (params?.phanQuyen && params.phanQuyen.length > 0) {
+      res = res.filter(acc => params.phanQuyen.includes(acc.phanQuyen));
     }
 
-    if (params?.vaiTro && params.vaiTro.length > 0) {
-      res = res.filter(acc => params.vaiTro.includes(acc.vaiTro));
-    }
     return res;
   } catch (err) {
     console.error(err);
@@ -106,29 +88,27 @@ const queryData = async (params) => {
   }
 };
 
-const accountTable = ref(null);
-
 const handleCreated = () => {
-  accountTable.value?.reload?.();
+  departmentTable.value?.reload?.();
 };
 
 function handleEdit(record) {
-  if (accountForm.value?.showModal) {
-    accountForm.value.showModal(record);
+  if (departmentForm.value?.showModal) {
+    departmentForm.value.showModal(record.id);
   }
 }
 
 async function handleDeactivate(record) {
   try {
-    const confirmed = await window.confirm(`Xác nhận vô hiệu hóa tài khoản ${record.tenNV}?`);
+    const confirmed = await window.confirm(`Xác nhận vô hiệu hóa phòng ban ${record.tenPhong}?`);
     if (!confirmed) return;
 
-    await AuthService.deleteAccount(record.id);
-    message.success("Đã vô hiệu hóa tài khoản");
-    projectTable.value?.reload?.();
+    await DepartmentService.deleteDepartment(record.id);
+    message.success("Đã vô hiệu hóa phòng ban");
+    departmentTable.value?.reload?.();
   } catch (err) {
     console.error(err);
-    message.error("Lỗi khi vô hiệu hóa tài khoản");
+    message.error("Lỗi khi vô hiệu hóa phòng ban");
   }
 }
 

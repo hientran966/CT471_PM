@@ -11,17 +11,31 @@
         :queryData="queryData"
         :searchText="searchText"
         @row-click="onRowClick"
-      />
+      >
+        <template #statusSlot="{ record }">
+          <a-dropdown trigger="click" @click.stop.prevent>
+            <template #overlay>
+              <a-menu @click="({ key }) => handleStatusChange(record, key)">
+                <a-menu-item key="Chưa bắt đầu">Chưa bắt đầu</a-menu-item>
+                <a-menu-item key="Đang tiến hành">Đang tiến hành</a-menu-item>
+                <a-menu-item key="Đã hoàn thành">Đã hoàn thành</a-menu-item>
+              </a-menu>
+            </template>
+            <a-tag :color="getStatusColor(record.trangThai)" style="cursor: pointer;">
+              {{ record.trangThai }}
+            </a-tag>
+          </a-dropdown>
+        </template>
+      </Table>
+      <ProjectForm ref="projectForm" @created="handleCreated"></ProjectForm>
     </div>
-    <ProjectForm ref="projectForm" @created="handleCreated"></ProjectForm>
 </template>
 
 <script setup>
 import InputSearch from "@/components/InputSearch.vue";
 import Table from "@/components/Table.vue";
 import ProjectForm from "@/components/ProjectForm.vue";
-
-import ProjectService from "@/services/DuAn.service"
+import ProjectService from "@/services/DuAn.service";
 import AssignmentService from "@/services/PhanCong.service";
 import TaskService from "@/services/CongViec.service";
 import AccountService from "@/services/TaiKhoan.service";
@@ -48,12 +62,12 @@ const columns = [
   {
     title: "Trạng Thái",
     dataIndex: "trangThai",
+    width: "15%",
     filters: [
       { text: "Chưa bắt đầu", value: "Chưa bắt đầu" },
       { text: "Đang tiến hành", value: "Đang tiến hành" },
       { text: "Đã hoàn thành", value: "Đã hoàn thành" },
     ],
-    width: "15%",
   },
   {
     title: "Quản Lý",
@@ -170,6 +184,25 @@ const projectTable = ref(null);
 const handleCreated = () => {
   projectTable.value?.reload?.();
 };
+
+const getStatusColor = (status) => {
+  switch (status) {
+    case 'Đã hoàn thành': return 'green';
+    case 'Đang tiến hành': return 'blue';
+    case 'Chưa bắt đầu': return 'default';
+    default: return 'default';
+  }
+};
+
+const handleStatusChange = async (record, status) => {
+  try {
+    await ProjectService.updateProject(record.id, { trangThai: status });
+    projectTable.value?.reload?.();
+  } catch (err) {
+    console.error('Lỗi cập nhật trạng thái:', err);
+  }
+};
+
 </script>
 
 <style scoped></style>

@@ -2,39 +2,30 @@
     <div class="all-account-container">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h1>Danh sách tài khoản</h1>
-        <a-button type="primary" @click="accountForm?.showModal()">+</a-button>
       </div>
       <InputSearch v-model="searchText" />
       <Table
-        ref="projectTable"
         :columns="columns"
         :queryData="queryData"
         :searchText="searchText"
         v-slot:actionSlot="{ record }"
       >
         <a-space>
-          <a-button type="primary" danger size="small" @click="handleDeactivate(record)">
-            <StopOutlined />
-          </a-button>
-          <a-button type="primary" size="small" @click="handleEdit(record)">
-            <EditOutlined />
+          <a-button type="primary" size="small" @click="handleRecover(record)">
+            Khôi phục
           </a-button>
         </a-space>
       </Table>
     </div>
-    <AccountForm ref="accountForm" @created="handleCreated"/>
 </template>
 
 <script setup>
 import InputSearch from "@/components/InputSearch.vue";
-import AccountForm from "./AccountForm.vue";
 import Table from "@/components/Table.vue";
 import AuthService from "@/services/TaiKhoan.service";
 import { ref } from "vue";
-import { StopOutlined, EditOutlined } from "@ant-design/icons-vue";
 
 const searchText = ref("");
-const accountForm = ref(null);
 
 const columns = [
   { title: "Tên", dataIndex: "tenNV", sorter: true, width: "125px" },
@@ -61,13 +52,13 @@ const columns = [
     ],
     width: "110px",
   },
-  { title: "Phòng ban", dataIndex: "idPhong", width: "100px", ellipsis: true, },
+  { title: "Địa chỉ", dataIndex: "diaChi", width: "100px", ellipsis: true, },
   { title: "Hành động", dataIndex: "account", width: "100px"},
 ];
 
 const queryData = async (params) => {
   try {
-    let res = await AuthService.getAllAccounts();
+    let res = await AuthService.getDeactive();
 
     if (params?.searchText && params.searchText.trim() !== "") {
       const keyword = params.searchText.trim().toLowerCase();
@@ -106,30 +97,18 @@ const queryData = async (params) => {
   }
 };
 
-const accountTable = ref(null);
+async function handleRecover(record) {
+    try {
+      const confirmed = await window.confirm(`Xác nhận khôi phục tài khoản ${record.tenNV}?`);
+      if (!confirmed) return;
 
-const handleCreated = () => {
-  accountTable.value?.reload?.();
-};
-
-function handleEdit(record) {
-  if (accountForm.value?.showModal) {
-    accountForm.value.showModal(record);
-  }
-}
-
-async function handleDeactivate(record) {
-  try {
-    const confirmed = await window.confirm(`Xác nhận vô hiệu hóa tài khoản ${record.tenNV}?`);
-    if (!confirmed) return;
-
-    await AuthService.deleteAccount(record.id);
-    message.success("Đã vô hiệu hóa tài khoản");
-    projectTable.value?.reload?.();
-  } catch (err) {
-    console.error(err);
-    message.error("Lỗi khi vô hiệu hóa tài khoản");
-  }
+      await AuthService.recover(record.id);
+      message.success("Đã khôi phục tài khoản");
+      projectTable.value?.reload?.();
+    } catch (err) {
+      console.error(err);
+      message.error("Lỗi khi khôi phục tài khoản");
+    }
 }
 
 </script>

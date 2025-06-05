@@ -55,7 +55,10 @@ onMounted(async () => {
       "Danh sách công việc",
       "task"
     ),
-    getItem("Temp", "3"),
+    getItem(
+      "Thông tin dự án",
+      "info"
+    ),
   ];
 });
 function onMenuClick({ key }) {
@@ -63,7 +66,9 @@ function onMenuClick({ key }) {
     router.push({ name: "task", query: { projectId: projectId.value } });
   } else if (key === "projectName") {
     router.push({ name: "project" });
-  }
+  } else if (key === "info") {
+    router.push({ name: "info", query: { projectId: projectId.value } });
+  } 
   activeKey.value = key;
 }
 

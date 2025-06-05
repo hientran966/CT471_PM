@@ -9,7 +9,7 @@
       />
     </div>
     <div class="col-8  all-task-scroll">
-      <TaskList :projectId="projectId"/>
+      <ProjectInfo :projectId="projectId"/>
     </div>  
   </div>
 </template>
@@ -18,7 +18,7 @@
 import { useRoute, useRouter } from "vue-router";
 import { ref, h, onMounted, computed } from "vue";
 import ProjectService from "@/services/DuAn.service"
-import TaskList from '@/components/TaskList.vue';
+import ProjectInfo from '@/components/ProjectInfo.vue';
 import Menu from '@/components/Menu.vue';
 
 const route = useRoute();
@@ -37,7 +37,7 @@ function getItem(label, key, icon, children, type) {
   };
 }
 
-const activeKey = ref("task");
+const activeKey = ref("info");
 
 onMounted(async () => {
   taskId.value = route.query.taskId || "";
