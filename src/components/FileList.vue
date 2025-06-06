@@ -6,7 +6,7 @@
       <br>
       <a-row :gutter="[16, 16]">
         <a-col
-          v-for="file in files.filter(t => t.tenFile.toLowerCase().includes(searchText.toLowerCase()))"
+          v-for="file in [...files].reverse().filter(t => t.tenFile.toLowerCase().includes(searchText.toLowerCase()))"
           :key="file.id"
           :span="6"
         >

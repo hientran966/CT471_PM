@@ -28,6 +28,10 @@ class TaskService {
     async getTasksByProject(id) {
         return (await this.api.get(`/project/${id}`)).data;
     }
+
+    async getTasksByAccount(accountId) {
+        return (await this.api.get(`/account/${accountId}`)).data;
+    }
 }
 
 export default new TaskService();

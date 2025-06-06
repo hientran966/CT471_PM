@@ -2,26 +2,54 @@
   <div class="all-assign-container">
     <a-space direction="vertical" size="30" style="width: 100%;">
       <InputSearch v-model="searchText" />
+      
       <a-row :gutter="[16, 16]" style="margin-bottom: 20px; margin-top: 20px;">
         <a-col :span="12">
           <h1>Chi tiết phân công</h1>
         </a-col>
         <a-col :span="12" style="text-align: right;">
-          <a-space>
-            <a-button type="primary" @click="$router.push({ name: 'file', query: { taskId: props.taskId, projectId: props.projectId } })">File</a-button>
-            <a-button type="primary" @click="$router.push('/add-assign')">Phân công mới</a-button>
-          </a-space>
+          <a-button type="primary" @click="$router.push('/add-assign')">Phân công mới</a-button>
         </a-col>
       </a-row>
+
       <a-row
-          v-for="assign in assigns
-            .filter(t => t.moTa.toLowerCase().includes(searchText.toLowerCase()))
-            .filter(t => t.trangThai !== 'Đã chuyển giao')"
-          :key="assign.id"
-          :span="20"
-        >
-          <AssignDetail :assign="assign" />
+        v-for="assign in paginatedAssigns"
+        :key="assign.id"
+        :span="20"
+      >
+        <AssignDetail :assign="assign" />
       </a-row>
+
+      <a-pagination
+        v-model:current="currentPage"
+        :page-size="pageSize"
+        :total="filteredAssigns.length"
+        style="margin-top: 20px; text-align: center;"
+      />
+
+      <div style="margin-top: 40px;">
+        <a-row :gutter="[16, 16]" style="margin-bottom: 20px; margin-top: 20px;">
+          <a-col :span="12">
+            <h3>File</h3>
+          </a-col>
+          <a-col :span="12" style="text-align: right;">
+            <a-space>
+              <a-button type="primary" @click="$router.push({ name: 'file', query: { taskId: props.taskId, projectId: props.projectId } })">Xem tất cả file</a-button>
+              <a-button type="dashed" @click="uploadFile">Tải lên file</a-button>
+            </a-space>
+          </a-col>
+        </a-row>
+
+        <a-row :gutter="[16, 16]">
+          <a-col
+            v-for="file in recentFiles"
+            :key="file.id"
+            :span="6"
+          >
+            <FileCard :file="file" />
+          </a-col>
+        </a-row>
+      </div>
     </a-space>
   </div>
 </template>
@@ -29,15 +57,39 @@
 <script setup>
 import InputSearch from "@/components/InputSearch.vue";
 import AssignDetail from "@/components/AssignDetail.vue";
+import FileCard from "@/components/FileCard.vue";
 import AssignService from "@/services/PhanCong.service";
-import { ref, watch } from "vue";
+import FileService from "@/services/File.service";
+import { ref, computed, watch } from "vue";
+import { useRouter } from "vue-router";
 
 const props = defineProps(['taskId', 'projectId']);
+const router = useRouter();
 
 const searchText = ref("");
 const assigns = ref([]);
+const files = ref([]);
 
-const loadData = async () => {
+const currentPage = ref(1);
+const pageSize = 5;
+
+const filteredAssigns = computed(() =>
+  assigns.value
+    .filter(t => t.moTa.toLowerCase().includes(searchText.value.toLowerCase()))
+    .filter(t => t.trangThai !== 'Đã chuyển giao')
+);
+
+const paginatedAssigns = computed(() => {
+  const start = (currentPage.value - 1) * pageSize;
+  return filteredAssigns.value.slice(start, start + pageSize);
+});
+
+const recentFiles = computed(() => {
+  const lastFive = files.value.slice(-5);
+  return lastFive.reverse();
+});
+
+const loadAssigns = async () => {
   if (!props.taskId) {
     assigns.value = [];
     return;
@@ -45,12 +97,28 @@ const loadData = async () => {
   try {
     assigns.value = await AssignService.getAssignmentsByTask(props.taskId);
   } catch (error) {
-    console.error("Error loading data:", error);
+    console.error("Error loading assigns:", error);
     assigns.value = [];
   }
 };
 
-watch(() => props.taskId, loadData, { immediate: true });
+const loadFiles = async () => {
+  try {
+    files.value = await FileService.getFilesByTask(props.taskId || "");
+  } catch (error) {
+    console.error("Error loading files:", error);
+    files.value = [];
+  }
+};
+
+const uploadFile = () => {
+  router.push({ name: 'upload', query: { taskId: props.taskId } });
+};
+
+watch(() => props.taskId, async () => {
+  await loadAssigns();
+  await loadFiles();
+}, { immediate: true });
 </script>
 
 <style scoped>

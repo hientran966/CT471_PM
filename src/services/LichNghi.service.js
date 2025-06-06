@@ -25,6 +25,9 @@ class CalendarService {
         return (await this.api.get("/")).data;
     }
     
+    async getNgayBuById(id) {
+        return (await this.api.get(`/ngaybu/${id}`)).data;
+    }
 }
 
 export default new CalendarService();
