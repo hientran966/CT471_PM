@@ -4,7 +4,12 @@
       <strong>{{ assign.moTa }}</strong>
     </template>
     <template #extra>
-      <a type="link" @click="transferHistoryRef?.showModal()" href="#">Xem</a>
+      <a-space>
+        <a v-if="!assign.ngayNhan && assign.trangThai !='Đã từ chối'" type="link" @click="handleAccept" href="#">Nhận</a>
+        <a v-if="!assign.ngayNhan && assign.trangThai !='Đã từ chối'" type="link" @click="handleReject" href="#">Từ Chối</a>
+        <a v-if="assign.ngayNhan" type="link" @click="reportForm?.showModal()" href="#">Cập Nhật</a>
+        <a type="link" @click="transferHistoryRef?.showModal()" href="#">Xem</a>
+      </a-space>
     </template>
     <div style="display: flex; align-items: center; gap: 8px;">
       <template v-for="(user, idx) in participants" :key="idx">
@@ -24,7 +29,18 @@
     </div>
 
     <div style="display: flex; justify-content: space-between;">
-      <p style="margin-bottom: 0;"><strong>Ngày nhận:</strong> {{ assign.ngayNhan ? dayjs(assign.ngayNhan).format("DD/MM/YYYY") : "" }}</p>
+      <p style="margin-bottom: 0;">
+        <strong>Ngày nhận:</strong>
+        <template v-if="assign.ngayNhan">
+          {{ dayjs(assign.ngayNhan).format("DD/MM/YYYY") }}
+        </template>
+        <template v-else-if="assign.trangThai === 'Đã từ chối'">
+          Đã từ chối
+        </template>
+        <template v-else>
+          Chờ nhận
+        </template>
+      </p>
       <p v-if="assign.ngayHoanTat" style="margin-bottom: 0;"><strong>Ngày hoàn tất:</strong> {{ dayjs(assign.ngayHoanTat).format("DD/MM/YYYY") }}</p>
     </div>
     <div style="display: flex; justify-content: space-between;">
@@ -33,6 +49,7 @@
     </div>
   </a-card>
   <TransferHistory ref="transferHistoryRef" :transfers="[...allAssignments].reverse()" />
+  <ReportForm ref="reportForm" @created="handleUpdated" :assign="assign" />
 </template>
 
 <script setup lang="ts">
@@ -40,7 +57,9 @@ import { ref, onMounted } from "vue";
 import AccountService from "@/services/TaiKhoan.service";
 import AssignService from "@/services/PhanCong.service";
 import TransferHistory from './TransferHistory.vue';
+import ReportForm from "@/components/ReportForm.vue";
 import dayjs from "dayjs";
+import { message } from "ant-design-vue";
 
 const props = defineProps<{
   assign: {
@@ -54,9 +73,46 @@ const props = defineProps<{
   }
 }>();
 
+const emit = defineEmits(["updated"]);
+
 const participants = ref<{ name: string, avatar?: string }[]>([]);
 const transferHistoryRef = ref();
 const allAssignments = ref<any[]>([]);
+const reportForm = ref();
+
+const formatDateToMySQL = (date: Date) => {
+  const pad = (n: number) => n.toString().padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+};
+
+const handleAccept = async () => {
+  try {
+    await AssignService.updateAssignment(props.assign.id, {
+      ngayNhan: formatDateToMySQL(new Date()),
+      trangThai: "Đang thực hiện",
+    });
+    message.success("Đã xác nhận thành công");
+    emit("updated");
+  } catch (err) {
+    console.error("Lỗi khi nhận công việc", err);
+  }
+};
+
+const handleReject = async () => {
+  try {
+    await AssignService.updateAssignment(props.assign.id, {
+      trangThai: "Đã từ chối",
+    });
+    message.success("Đã từ chối");
+    emit("updated");
+  } catch (err) {
+    console.error("Lỗi khi từ chối công việc", err);
+  }
+};
+
+const handleUpdated = async () => {
+
+};
 
 onMounted(async () => {
   try {

@@ -44,6 +44,10 @@ class AuthService {
     async recover(id) {
         return (await this.api.put(`/deactive/${id}`)).data;
     }
+
+    async getDepartmentAccounts(id) {
+        return (await this.api.get(`/department/${id}`)).data;
+    }
 }
 
 export default new AuthService();

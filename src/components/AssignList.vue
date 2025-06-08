@@ -8,7 +8,7 @@
           <h1>Chi tiết phân công</h1>
         </a-col>
         <a-col :span="12" style="text-align: right;">
-          <a-button type="primary" @click="$router.push('/add-assign')">Phân công mới</a-button>
+          <a-button type="primary" @click="assignForm?.showModal()">Phân công mới</a-button>
         </a-col>
       </a-row>
 
@@ -17,7 +17,7 @@
         :key="assign.id"
         :span="20"
       >
-        <AssignDetail :assign="assign" />
+        <AssignDetail :assign="assign" @updated="handleUpdated" />
       </a-row>
 
       <a-pagination
@@ -35,7 +35,7 @@
           <a-col :span="12" style="text-align: right;">
             <a-space>
               <a-button type="primary" @click="$router.push({ name: 'file', query: { taskId: props.taskId, projectId: props.projectId } })">Xem tất cả file</a-button>
-              <a-button type="dashed" @click="uploadFile">Tải lên file</a-button>
+              <a-button type="dashed" @click="fileForm?.showModal()">Tải lên file</a-button>
             </a-space>
           </a-col>
         </a-row>
@@ -51,6 +51,8 @@
         </a-row>
       </div>
     </a-space>
+    <AssignForm ref="assignForm" @created="handleCreated" :task-id="props.taskId"/>
+    <FileForm ref="fileForm" @uploaded="handleFileUploaded" :task-id="props.taskId"/>
   </div>
 </template>
 
@@ -58,6 +60,8 @@
 import InputSearch from "@/components/InputSearch.vue";
 import AssignDetail from "@/components/AssignDetail.vue";
 import FileCard from "@/components/FileCard.vue";
+import AssignForm from "@/components/AssignForm.vue";
+import FileForm from "@/components/FileForm.vue";
 import AssignService from "@/services/PhanCong.service";
 import FileService from "@/services/File.service";
 import { ref, computed, watch } from "vue";
@@ -69,6 +73,8 @@ const router = useRouter();
 const searchText = ref("");
 const assigns = ref([]);
 const files = ref([]);
+const assignForm = ref(null);
+const fileForm = ref(null);
 
 const currentPage = ref(1);
 const pageSize = 5;
@@ -115,10 +121,32 @@ const uploadFile = () => {
   router.push({ name: 'upload', query: { taskId: props.taskId } });
 };
 
+const handleCreated = async () => {
+  await loadAssigns();
+};
+
+const handleUpdated = async () => {
+  await loadAssigns();
+  currentPage.value = 1;
+};
+
+const handleFileUploaded = async () => {
+  await loadFiles();
+};
+
+function handleEdit(record) {
+  if (accountForm.value?.showModal) {
+    accountForm.value.showModal(record);
+  }
+}
+
 watch(() => props.taskId, async () => {
   await loadAssigns();
   await loadFiles();
 }, { immediate: true });
+watch(searchText, () => {
+  currentPage.value = 1;
+});
 </script>
 
 <style scoped>

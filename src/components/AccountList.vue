@@ -35,6 +35,7 @@ import { StopOutlined, EditOutlined } from "@ant-design/icons-vue";
 
 const searchText = ref("");
 const accountForm = ref(null);
+const accountTable = ref(null);
 
 const columns = [
   { title: "Tên", dataIndex: "tenNV", sorter: true, width: "125px" },
@@ -105,8 +106,6 @@ const queryData = async (params) => {
     return [];
   }
 };
-
-const accountTable = ref(null);
 
 const handleCreated = () => {
   accountTable.value?.reload?.();
