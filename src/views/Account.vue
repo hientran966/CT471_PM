@@ -109,6 +109,8 @@ a-card:hover {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
+  background-image: url("@/assets/background.jpg");
+  background-size: cover;
   background-color: rgb(255, 208, 208);
   flex: 1 1 0;
   min-width: 200px;

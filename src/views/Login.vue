@@ -45,6 +45,7 @@ export default {
 
 <style scoped>
 .page {
+  background-color: white;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -64,15 +65,6 @@ h4 {
   font-size: 24px;
   margin-bottom: 20px;
   color: #000000;
-}
-
-.register-link a {
-  color: #ff0000;
-  text-decoration: none;
-}
-
-.register-link a:hover {
-  text-decoration: underline;
 }
 
 .message {

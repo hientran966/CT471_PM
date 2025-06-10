@@ -1,5 +1,5 @@
 <template>
-  <a-card hoverable style="width: 200px" size="small">
+  <a-card hoverable style="width: 200px" size="small" @click="$emit('preview', props.file)">
     <template #cover>
       <template v-if="isImage">
         <img alt="example" :src="fileSrc" />
@@ -9,6 +9,9 @@
       </template>
       <template v-else-if="isExcel">
         <img alt="excel" src="../assets/icons/excel-icon.png" style="width:100px;margin:20px auto;display:block;" />
+      </template>
+      <template v-else-if="isPDF">
+        <img alt="file" src="../assets/icons/pdf-icon.png" style="width:100px;margin:20px auto;display:block;" />
       </template>
       <template v-else>
         <img alt="file" src="../assets/icons/file-icon.png" style="width:100px;margin:20px auto;display:block;" />
@@ -46,6 +49,7 @@ const ext = computed(() => props.file.tenFile.split('.').pop()?.toLowerCase() ||
 const isImage = computed(() => ["jpg", "jpeg", "png", "gif", "bmp", "webp"].includes(ext.value));
 const isWord = computed(() => ["doc", "docx"].includes(ext.value));
 const isExcel = computed(() => ["xls", "xlsx"].includes(ext.value));
+const isPDF = computed(() => ["pdf"].includes(ext.value));
 
 onMounted(async () => {
   try {

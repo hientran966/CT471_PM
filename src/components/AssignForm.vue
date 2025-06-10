@@ -61,22 +61,24 @@ const emit = defineEmits(["created"]);
 
 const props = defineProps<{ taskId: string }>();
 
-const assign = reactive({
-  moTa: "",
-  doQuanTrong: null,
-  idNguoiNhan: "",
-});
-
 const formRef = ref();
 const accounts = ref<{ id: string; tenNV: string }[]>([]);
 const deptLoading = ref(false);
 const open = ref<boolean>(false);
 
+const assign = reactive({
+  moTa: "",
+  doQuanTrong: null as number | null,
+  idNguoiNhan: null as string | null,
+});
+
 const rules: Record<string, Rule[]> = {
   moTa: [
-    { required: true, message: "Xin nhập mô tả", trigger: "change" },
-    { min: 3, max: 50, message: "Mô tả từ 3 đến 50 ký tự", trigger: "blur" },
+    { required: true, message: "Xin nhập mô tả", trigger: "blur" },
+    { min: 3, max: 50, message: "Mô tả từ 3-50 ký tự", trigger: "blur" },
   ],
+  idNguoiNhan: [{ required: true, message: "Chọn nhân viên", trigger: "change" }],
+  doQuanTrong: [{ required: true, type: "number", message: "Nhập độ quan trọng", trigger: "change" }],
 };
 
 const resetForm = () => {
@@ -91,9 +93,12 @@ const showModal = () => {
 const handleOk = async () => {
   try {
     await formRef.value.validate();
+    console.log({ assign });
+    console.log("taskId:", props.taskId);
     await AssignService.createAssignment({
       moTa: assign.moTa,
       doQuanTrong: assign.doQuanTrong,
+      tienDoCaNhan: 0,
       idNguoiNhan: assign.idNguoiNhan,
       idCongViec: props.taskId,
     });

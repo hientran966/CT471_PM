@@ -11,7 +11,6 @@
         :model="formState"
         layout="vertical"
         @finish="handleOk"
-        :rules="rules"
         ref="formRef"
       >
       <a-upload-dragger
@@ -34,7 +33,7 @@
 <script lang="ts" setup>
 import dayjs, { Dayjs } from "dayjs";
 import { reactive, ref, toRaw, onMounted, watch } from "vue";
-import type { Rule } from "ant-design-vue/es/form";
+import { InboxOutlined } from '@ant-design/icons-vue';
 import { message } from "ant-design-vue";
 import FileService from "@/services/File.service";
 import AuthService from "@/services/TaiKhoan.service";
@@ -54,13 +53,6 @@ const accounts = ref<{ id: string; tenNV: string }[]>([]);
 const deptLoading = ref(false);
 const open = ref<boolean>(false);
 
-const rules: Record<string, Rule[]> = {
-  moTa: [
-    { required: true, message: "Xin nhập mô tả", trigger: "change" },
-    { min: 3, max: 50, message: "Mô tả từ 3 đến 50 ký tự", trigger: "blur" },
-  ],
-};
-
 const resetForm = () => {
   formRef.value.resetFields();
 };
@@ -69,10 +61,9 @@ const showModal = () => {
   open.value = true;
 };
 
-// Chặn upload tự động
 const handleBeforeUpload = (file) => {
-  formState.dragger = [file]; // chỉ giữ 1 file
-  return false; // Ngăn upload tự động
+  formState.dragger = [file];
+  return false;
 };
 
 const handleOk = async () => {
@@ -90,11 +81,12 @@ const handleOk = async () => {
 
       const payload = {
         tenFile: file.name,
-        fileDataBase64: base64,
-        idCongViec: props.taskId,
-        idNguoiTao: currentUser.id,
+        fileDataBase64: base64 ?? null,
+        idCongViec: props.taskId ?? null,
+        idNguoiTao: currentUser?.id ?? null,
       };
 
+      console.log("Payload:", payload);
       await FileService.createFile(payload);
 
       message.success("Tải file thành công");
