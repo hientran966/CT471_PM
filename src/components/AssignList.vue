@@ -17,7 +17,7 @@
         :key="assign.id"
         :span="20"
       >
-        <AssignDetail :assign="assign" @updated="handleUpdated" />
+        <AssignDetail :assign="assign" @updated="handleUpdated" :task-id="props.taskId"/>
       </a-row>
 
       <a-pagination

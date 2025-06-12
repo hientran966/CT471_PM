@@ -29,8 +29,12 @@ class AssignmentService {
         return (await this.api.get(`/task/${task}`)).data;
     }
 
-    async transfer(id, data) {
-        return (await this.api.put(`/${id}/transfer`, data)).data;
+    async startTransfer(id, data) {
+        return (await this.api.put(`/${id}/transfer/start`, data)).data;
+    }
+
+    async completeTransfer(id, data) {
+        return (await this.api.put(`/${id}/transfer/complete`, data)).data;
     }
 
     async getFullTransferChain(id) {
