@@ -56,7 +56,7 @@ export default {
   computed: {
     isAdmin() {
       const user = JSON.parse(localStorage.getItem("user"));
-      return user && user.vaiTro === "Admin";
+      return user && user.admin == 1;
     },
 
   },

@@ -48,6 +48,14 @@ class AuthService {
     async getDepartmentAccounts(id) {
         return (await this.api.get(`/department/${id}`)).data;
     }
+
+    async changePassword(id, oldPassword, newPassword) {
+        return (await this.api.put(`/${id}/password`, { oldPassword, newPassword })).data;
+    }
+
+    async getAssignNumber(id) {
+        return (await this.api.get(`/${id}/assign`)).data;
+    }
 }
 
 export default new AuthService();

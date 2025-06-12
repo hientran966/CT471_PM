@@ -40,6 +40,10 @@ class FileService {
     async addVersion(fileId, data) {
         return (await this.api.post(`/${fileId}/version`, data)).data;
     }
+
+    async approveVersion(fileId, versionId) {
+        return (await this.api.put(`/${fileId}/version/${versionId}/approve`)).data;
+    }
 }
 
 export default new FileService();

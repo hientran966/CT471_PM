@@ -42,23 +42,26 @@ import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 dayjs.extend(isSameOrBefore);
 const emit = defineEmits(["created"]);
 
-const props = defineProps<{ taskId?: string }>();
+const props = defineProps<{
+  taskId?: string;
+  fileId?: string;
+}>();
 
 const formState = reactive({
   dragger: [],
 });
 
 const formRef = ref();
-const accounts = ref<{ id: string; tenNV: string }[]>([]);
-const deptLoading = ref(false);
 const open = ref<boolean>(false);
+const currentFileId = ref(null);
+
+const showModal = (fileId = null) => {
+  currentFileId.value = fileId;
+  open.value = true;
+};
 
 const resetForm = () => {
   formRef.value.resetFields();
-};
-
-const showModal = () => {
-  open.value = true;
 };
 
 const handleBeforeUpload = (file) => {
@@ -82,14 +85,18 @@ const handleOk = async () => {
       const payload = {
         tenFile: file.name,
         fileDataBase64: base64 ?? null,
-        idCongViec: props.taskId ?? null,
+        idCongViec: props.fileId ? null : props.taskId ?? null,
         idNguoiTao: currentUser?.id ?? null,
       };
 
-      console.log("Payload:", payload);
-      await FileService.createFile(payload);
+      if (currentFileId.value) {
+        await FileService.addVersion(currentFileId.value, payload);
+        message.success("Tải phiên bản mới thành công");
+      } else {
+        await FileService.createFile(payload);
+        message.success("Tải file thành công");
+      }
 
-      message.success("Tải file thành công");
       emit("created");
       open.value = false;
       formState.dragger = [];
@@ -101,6 +108,13 @@ const handleOk = async () => {
     message.error("Tải file lên thất bại");
   }
 };
+
+watch(open, (val) => {
+  if (!val) {
+    formState.dragger = [];
+    resetForm();
+  }
+});
 
 defineExpose({ showModal });
 </script>

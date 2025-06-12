@@ -46,13 +46,21 @@
             :key="file.id"
             :span="6"
           >
-            <FileCard :file="file" />
+            <FileCard :file="file" @preview="handlePreview" />
           </a-col>
         </a-row>
       </div>
     </a-space>
     <AssignForm ref="assignForm" @created="handleCreated" :task-id="props.taskId"/>
-    <FileForm ref="fileForm" @uploaded="handleFileUploaded" :task-id="props.taskId"/>
+    <FileForm ref="fileForm" @uploaded="handleFileUploaded" :task-id="props.taskId" />
+    <FileDetail
+      :file="selectedFile"
+      :task-creator-id="taskCreatorId"
+      ref="detailRef"
+      @submitted="handleReview"
+      @approved="handleApprove"
+      @uploadVer="handleUploadNewVersion"
+    />
   </div>
 </template>
 
@@ -62,10 +70,15 @@ import AssignDetail from "@/components/AssignDetail.vue";
 import FileCard from "@/components/FileCard.vue";
 import AssignForm from "@/components/AssignForm.vue";
 import FileForm from "@/components/FileForm.vue";
+import FileDetail from "@/components/FileDetail.vue";
+import TaskService from "@/services/CongViec.service";
 import AssignService from "@/services/PhanCong.service";
 import FileService from "@/services/File.service";
+import NotificationService from "@/services/ThongBao.service";
 import { ref, computed, watch } from "vue";
 import { useRouter } from "vue-router";
+import { message } from "ant-design-vue";
+import Task from "@/views/Task.vue";
 
 const props = defineProps(['taskId', 'projectId']);
 const router = useRouter();
@@ -75,6 +88,7 @@ const assigns = ref([]);
 const files = ref([]);
 const assignForm = ref(null);
 const fileForm = ref(null);
+const taskCreatorId = ref("");
 
 const currentPage = ref(1);
 const pageSize = 5;
@@ -95,6 +109,14 @@ const recentFiles = computed(() => {
   return lastFive.reverse();
 });
 
+function formatDateTime(date) {
+  const d = new Date(date);
+  const pad = (n) => n.toString().padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} `
+       + `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
+
 const loadAssigns = async () => {
   if (!props.taskId) {
     assigns.value = [];
@@ -102,6 +124,7 @@ const loadAssigns = async () => {
   }
   try {
     assigns.value = await AssignService.getAssignmentsByTask(props.taskId);
+    taskCreatorId.value = await TaskService.getTaskById(props.taskId).then(task => task.idNguoiTao || "");
   } catch (error) {
     console.error("Error loading assigns:", error);
     assigns.value = [];
@@ -110,15 +133,34 @@ const loadAssigns = async () => {
 
 const loadFiles = async () => {
   try {
-    files.value = await FileService.getFilesByTask(props.taskId || "");
+    const rawFiles = await FileService.getFilesByTask(props.taskId || "");
+
+    const fileMap = new Map();
+
+    for (const f of rawFiles) {
+      const fileKey = f.id;
+
+      if (!fileMap.has(fileKey)) {
+        fileMap.set(fileKey, f);
+      } else {
+        const existing = fileMap.get(fileKey);
+
+        if ((f.soPB || 0) > (existing.soPB || 0)) {
+          fileMap.set(fileKey, f);
+        }
+      }
+    }
+
+    files.value = Array.from(fileMap.values());
+
   } catch (error) {
     console.error("Error loading files:", error);
     files.value = [];
   }
 };
 
-const uploadFile = () => {
-  router.push({ name: 'upload', query: { taskId: props.taskId } });
+const handleUploadNewVersion = (fileId) => {
+  fileForm.value.showModal(fileId);
 };
 
 const handleCreated = async () => {
@@ -134,11 +176,47 @@ const handleFileUploaded = async () => {
   await loadFiles();
 };
 
-function handleEdit(record) {
-  if (accountForm.value?.showModal) {
-    accountForm.value.showModal(record);
+const selectedFile = ref(null);
+const detailRef = ref();
+
+const handlePreview = (file) => {
+  selectedFile.value = file;
+  detailRef.value?.showModal();
+};
+
+const handleReview = ({ idFile, review, idNguoiDang }) => {
+  if (!review?.trim()) {
+    message.warning("Nội dung đánh giá không được để trống!");
+    return;
   }
-}
+
+  NotificationService.createNotification({
+    tieuDe: "Đánh giá file",
+    noiDung: review.trim(),
+    idPhienBan: idFile,
+    ngayDang: formatDateTime(new Date()),
+    idNguoiDang: idNguoiDang,
+  })
+    .then(() => {
+      message.success("Đánh giá đã được gửi thành công!");
+      detailRef.value?.showModal();
+    })
+    .catch((error) => {
+      message.error("Lỗi khi gửi đánh giá: " + error.message);
+    });
+};
+
+
+const handleApprove = ({ idFile }) => {
+  // Gửi API duyệt file
+  FileService.approveVersion(idFile)
+    .then(() => {
+      message.success("File đã được duyệt thành công!");
+    })
+    .catch(error => {
+      message.error("Lỗi khi duyệt file: " + error.message);
+    });
+};
 
 watch(() => props.taskId, async () => {
   await loadAssigns();

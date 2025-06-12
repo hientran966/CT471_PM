@@ -17,9 +17,12 @@
         <img alt="file" src="../assets/icons/file-icon.png" style="width:100px;margin:20px auto;display:block;" />
       </template>
     </template>
-    <a-card-meta :title="file.tenFile" description="This is the description">
+    <a-card-meta :title="file.tenFile">
       <template #avatar>
         <a-avatar :src="`/api/auth/avatar/${props.file.idNguoiTao}`" />
+      </template>
+      <template #description>
+        <a-tag :color="statusColor">{{ latestStatus }}</a-tag>
       </template>
     </a-card-meta>
   </a-card>
@@ -50,6 +53,31 @@ const isImage = computed(() => ["jpg", "jpeg", "png", "gif", "bmp", "webp"].incl
 const isWord = computed(() => ["doc", "docx"].includes(ext.value));
 const isExcel = computed(() => ["xls", "xlsx"].includes(ext.value));
 const isPDF = computed(() => ["pdf"].includes(ext.value));
+
+const latestStatus = ref<string>("");
+const statusColor = computed(() => {
+  switch (latestStatus.value) {
+    case "Đã duyệt": return "green";
+    case "Chờ duyệt": return "orange";
+    case "Từ chối": return "red";
+    default: return "default";
+  }
+});
+
+onMounted(async () => {
+  try {
+    const versions = await FileService.getAllVersions(props.file.id);
+
+    if (versions && versions.length > 0) {
+      const latest = versions[versions.length - 1];
+      fileSrc.value = `${backendUrl}/${latest.duongDan}`;
+      latestStatus.value = latest.trangThai || "";
+    }
+
+  } catch (err) {
+    latestStatus.value = "";
+  }
+});
 
 onMounted(async () => {
   try {

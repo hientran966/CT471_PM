@@ -30,7 +30,12 @@
               :key="dept.id"
               :value="dept.id"
             >
-              {{ dept.tenNV }}
+              <span style="display: flex; justify-content: space-between; align-items: center">
+                <span>{{ dept.tenNV }}</span>
+                <a-tag :color="getTagColor(dept.assignCount)">
+                  {{ dept.assignCount }} dự án
+                </a-tag>
+              </span>
             </a-select-option>
           </a-select>
         </a-form-item>
@@ -62,7 +67,11 @@ const emit = defineEmits(["created"]);
 const props = defineProps<{ taskId: string }>();
 
 const formRef = ref();
-const accounts = ref<{ id: string; tenNV: string }[]>([]);
+const accounts = ref<{
+  id: string;
+  tenNV: string;
+  assignCount: number;
+}[]>([]);
 const deptLoading = ref(false);
 const open = ref<boolean>(false);
 
@@ -71,6 +80,12 @@ const assign = reactive({
   doQuanTrong: null as number | null,
   idNguoiNhan: null as string | null,
 });
+
+function getTagColor(count: number) {
+  if (count <= 2) return "green";
+  if (count <= 5) return "gold";
+  return "red";
+}
 
 const rules: Record<string, Rule[]> = {
   moTa: [
@@ -93,8 +108,6 @@ const showModal = () => {
 const handleOk = async () => {
   try {
     await formRef.value.validate();
-    console.log({ assign });
-    console.log("taskId:", props.taskId);
     await AssignService.createAssignment({
       moTa: assign.moTa,
       doQuanTrong: assign.doQuanTrong,
@@ -115,7 +128,19 @@ const fetchDepartments = async () => {
   deptLoading.value = true;
   const currentUser = await AuthService.getCurrentUser();
   try {
-    accounts.value = await AuthService.getDepartmentAccounts(currentUser.id);
+    const rawAccounts = await AuthService.getDepartmentAccounts(currentUser.id);
+
+    const results = await Promise.all(
+      rawAccounts.map(async (acc: any) => {
+        const res = await AuthService.getAssignNumber(acc.id);
+        return {
+          ...acc,
+          assignCount: Number(res.count) || 0,
+        };
+      })
+    );
+
+    accounts.value = results.sort((a, b) => b.assignCount - a.assignCount);
   } finally {
     deptLoading.value = false;
   }

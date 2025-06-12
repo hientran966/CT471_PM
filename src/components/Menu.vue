@@ -20,11 +20,10 @@
     const openKeys = ref<string[]>(['sub1']);
 
     const handleClick: MenuProps['onClick'] = e => {
-    console.log('click', e);
     };
 
     watch(openKeys, val => {
-    console.log('openKeys', val);
+
     });
 </script>
 

@@ -23,18 +23,18 @@
             </a-form-item>
 
             <a-form-item label="Email" name="email">
-              <a-input v-model:value="user.email" />
+              <a-input v-model:value="user.email" :disabled="!isAdmin"/>
             </a-form-item>
 
-            <a-form-item label="Mật khẩu" name="Password">
-              <a-input-Password
+            <a-form-item v-if="!isEditMode" label="Mật khẩu" name="Password">
+              <a-input-password
                 v-model:value="user.Password"
-                autocomplete="new-Password"
+                autocomplete="new-password"
               />
             </a-form-item>
 
             <a-form-item label="Vai trò" name="vaiTro">
-              <a-select v-model:value="user.vaiTro" placeholder="Chọn vai trò">
+              <a-select v-model:value="user.vaiTro" placeholder="Chọn vai trò" :disabled="!isAdmin">
                 <a-select-option value="Giám Đốc">Giám Đốc</a-select-option>
                 <a-select-option value="Trưởng Phòng">Trưởng Phòng</a-select-option>
                 <a-select-option value="Nhân Viên">Nhân Viên</a-select-option>
@@ -45,7 +45,7 @@
           <!-- Cột phải -->
           <a-col :span="12">
             <a-form-item label="Giới tính" name="gioiTinh">
-              <a-radio-group v-model:value="user.gioiTinh">
+              <a-radio-group v-model:value="user.gioiTinh" :disabled="!isAdmin">
                 <a-radio value="Nam">Nam</a-radio>
                 <a-radio value="Nữ">Nữ</a-radio>
               </a-radio-group>
@@ -64,6 +64,7 @@
                 v-model:value="user.idPhong"
                 placeholder="Chọn phòng ban"
                 :loading="deptLoading"
+                :disabled="!isAdmin"
                 allow-clear
               >
                 <a-select-option
@@ -81,6 +82,7 @@
                 v-model:checked="user.admin"
                 :checked-value="1"
                 :un-checked-value="0"
+                :disabled="!isAdmin"
               />
             </a-form-item>
           </a-col>
@@ -91,10 +93,9 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, onMounted } from "vue";
+import { reactive, ref, onMounted, computed } from "vue";
 import type { Rule } from "ant-design-vue/es/form";
 import { message } from "ant-design-vue";
-import dayjs from "dayjs";
 
 import AccountService from "@/services/TaiKhoan.service";
 import DepartmentService from "@/services/PhongBan.service";
@@ -121,6 +122,9 @@ const editUserId = ref(null);
 const departments = ref<{ id: string; tenPhong: string }[]>([]);
 const deptLoading = ref(false);
 
+const userData = JSON.parse(localStorage.getItem("user") || "{}");
+const isAdmin = computed(() => userData.admin === 1);
+
 const rules: Record<string, Rule[]> = {
   tenNV: [
     { required: true, message: "Xin nhập tên người dùng", trigger: "blur" },
@@ -134,6 +138,9 @@ const rules: Record<string, Rule[]> = {
     { pattern: /^[0-9]{9,11}$/, message: "SĐT 9–11 chữ số", trigger: "blur" },
   ],
   idPhong: [{ required: true, message: "Chọn phòng ban", trigger: "change" }],
+  Password: isEditMode.value
+  ? []
+  : [{ required: true, message: "Nhập mật khẩu", trigger: "blur" }],
 };
 
 const showModal = (record?: any) => {

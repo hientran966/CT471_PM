@@ -100,7 +100,6 @@ onMounted(async () => {
         })
       );
       tasks.value = tasksWithProgress;
-      console.log("Công việc đã load:", JSON.stringify(tasks.value, null, 2));
     }
   } catch (err) {
     console.error("Không lấy được thông tin tài khoản hoặc dự án:", err);

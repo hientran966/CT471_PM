@@ -14,8 +14,8 @@
         >
         </a-avatar>
         <a-space>
-          <a-button type="primary"><EditOutlined /></a-button>
-          <a-button type="primary">Đổi mật khẩu</a-button>
+          <a-button type="primary" @click="handleEdit()"><EditOutlined /></a-button>
+          <a-button type="primary" @click="handlePassword">Đổi mật khẩu</a-button>
         </a-space>
       </a-space>
     </div>
@@ -34,6 +34,8 @@
       </a-space>
     </div>
   </div>
+  <AccountForm ref="accountForm" @created="handleCreated"/>
+  <PasswordForm ref="passwordForm"/>
 </template>
 
 <script setup>
@@ -42,6 +44,8 @@ import AAvatar from "ant-design-vue/es/avatar";
 import AButton from "ant-design-vue/es/button";
 import ASpace from "ant-design-vue/es/space";
 import ACard from "ant-design-vue/es/card";
+import AccountForm from "@/components/AccountForm.vue";
+import PasswordForm from "@/components/PasswordForm.vue";
 import AuthService from "@/services/TaiKhoan.service";
 import { ref, onMounted, computed } from "vue";
 
@@ -54,15 +58,34 @@ const user = ref({
   vaiTro: "",
 });
 
+const accountForm = ref(null);
+const passwordForm = ref(null);
+
 const avatar = computed(() => {
   return user.value.id ? `/api/auth/avatar/${user.value.id}` : undefined;
 });
 
+function handleEdit() {
+  if (accountForm.value?.showModal) {
+    accountForm.value.showModal({ ...user.value });
+  }
+}
+
+function handlePassword() {
+  if (passwordForm.value?.showModal) {
+    passwordForm.value.showModal({ ...user.value });
+  }
+}
+
+function handleCreated() {
+  onMounted();
+}
+
 onMounted(async () => {
-  const email = localStorage.getItem("user");
-  if (email) {
+  const currUser = await AuthService.getCurrentUser();
+  if (currUser) {
     try {
-      const data = await AuthService.getCurrentUser();
+      const data = await AuthService.getAccountById(currUser.id);
       Object.assign(user.value, data);
     } catch (err) {
       console.error("Không lấy được thông tin tài khoản:", err);
