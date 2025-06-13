@@ -37,12 +37,24 @@ class AssignmentService {
         return (await this.api.put(`/${id}/transfer/complete`, data)).data;
     }
 
+    async rejectTransfer(id, data) {
+        return (await this.api.put(`/${id}/transfer/reject`, data)).data;
+    }
+
     async getFullTransferChain(id) {
         return (await this.api.get(`/${id}/chain`)).data;
     }
 
     async report(id, data) {
         return (await this.api.put(`/${id}/report`, data)).data;
+    }
+
+    async getPendingTransfer(id) {
+        return (await this.api.get(`/${id}/pending`)).data;
+    }
+
+    async getTransferByUser(id) {
+        return (await this.api.get(`/${id}/userTransfer`)).data;
     }
 }
 

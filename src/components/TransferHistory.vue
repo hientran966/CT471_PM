@@ -7,8 +7,8 @@
             <div>
               <strong>Người nhận:</strong> {{ item.nguoiNhan?.tenNV || item.idNguoiNhan || 'Không rõ' }}<br />
               <strong>Mô tả:</strong> {{ item.moTa || '' }}<br />
-              <strong>Ngày nhận:</strong> {{ item.ngayNhan ? dayjs(item.ngayNhan).format("DD/MM/YYYY") : "Chưa xác định" }}<br />
-              <strong>Ngày hoàn tất:</strong> {{ item.ngayHoanTat ? dayjs(item.ngayHoanTat).format("DD/MM/YYYY") : "Chưa xác định" }}<br />
+              <strong>Ngày nhận:</strong> {{ item.ngayNhan ? dayjs(item.ngayNhan).format("DD/MM/YYYY HH:mm") : "Chưa xác định" }}<br />
+              <strong>Ngày hoàn tất:</strong> {{ item.ngayHoanTat ? dayjs(item.ngayHoanTat).format("DD/MM/YYYY HH:mm") : "Chưa xác định" }}<br />
               <strong>Trạng thái:</strong> {{ item.trangThai || '' }}
             </div>
           </a-timeline-item>

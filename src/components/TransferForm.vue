@@ -18,10 +18,10 @@
           <a-input v-model:value="transfer.moTa" />
         </a-form-item>
 
-        <a-form-item label="Nhân viên đảm nhận" name="idNguoiNhanMoi">
+        <a-form-item label="Nhân viên đảm nhận" name="idNguoiNhan">
           <a-select
-            v-model:value="transfer.idNguoiNhanMoi"
-            placeholder="Chọn phòng ban"
+            v-model:value="transfer.idNguoiNhan"
+            placeholder="Chọn nhân viên"
             :loading="deptLoading"
             allow-clear
           >
@@ -70,7 +70,8 @@ const open = ref<boolean>(false);
 
 const transfer = reactive({
   moTa: "",
-  idNguoiNhanMoi: null as string | null,
+  idNguoiNhan: null as string | null,
+  idNguoiGui: "",
 });
 
 function getTagColor(count: number) {
@@ -99,6 +100,8 @@ const showModal = () => {
 const handleOk = async () => {
   try {
     await formRef.value.validate();
+    const currentUser = await AuthService.getCurrentUser();
+    transfer.idNguoiGui = currentUser.id;
     console.log("Submitting transfer:", props.assignId, toRaw(transfer));
     await AssignService.startTransfer(
       props.assignId,
@@ -128,7 +131,6 @@ const fetchDepartments = async () => {
         };
       })
     );
-
     accounts.value = results.sort((a, b) => b.assignCount - a.assignCount);
   } finally {
     deptLoading.value = false;

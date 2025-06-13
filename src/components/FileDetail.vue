@@ -1,9 +1,9 @@
 <template>
   <a-modal
-    v-model:visible="visible"
+    v-model:open="open"
     title="Chi tiết tập tin"
     width="1000px"
-    @cancel="visible = false"
+    @cancel="open = false"
     :footer="null"
   >
     <div class="modal-container">
@@ -129,7 +129,7 @@ const props = defineProps({
 const emit = defineEmits(["submitted", "approved"]);
 
 // State
-const visible = ref(false);
+const open = ref(false);
 const fileSrc = ref("");
 const reviewText = ref("");
 const versions = ref([]);
@@ -162,7 +162,7 @@ watch(
   () => props.file,
   async (file) => {
     if (!file) return;
-    visible.value = true;
+    open.value = true;
     reviewText.value = "";
     versions.value = [];
 
@@ -218,7 +218,7 @@ const submitReview = () => {
       idNguoiDang: user.value.id,
     });
   }
-  visible.value = false;
+  open.value = false;
 };
 
 const approveFile = () => {
@@ -226,7 +226,7 @@ const approveFile = () => {
   if (selected) {
     emit("approved", { idFile: selected.id });
   }
-  visible.value = false;
+  open.value = false;
 };
 
 const selectVersion = (item) => {
@@ -243,7 +243,7 @@ const formatDate = (dateStr) => {
   return dayjs(dateStr).format("DD/MM/YYYY HH:mm");
 };
 
-defineExpose({ showModal: () => (visible.value = true) });
+defineExpose({ showModal: () => (open.value = true) });
 </script>
 
 <style scoped>

@@ -45,19 +45,15 @@
       </a-tag>
     </p>
     <p><strong>Người tham gia:</strong></p>
-    <a-avatar-group
-      :max-count="2"
-      :max-style="{ color: '#f56a00', backgroundColor: '#fde3cf' }"
-    >
-      <a-avatar
-        v-if="participants"
-        v-for="(user, idx) in participants"
-        :key="idx"
-        :src="user.avatar ? user.avatar : defaultAvatar"
-        :style="!user.avatar ? { backgroundColor: '#1890ff' } : undefined"
-      >
-        <template v-if="!user.avatar">{{ defaultAvatar }}</template>
-      </a-avatar>
+    <a-avatar-group :max-count="2" :max-style="{ color: '#f56a00', backgroundColor: '#fde3cf' }">
+      <a-tooltip v-for="(user, idx) in participants" :key="idx" :title="user.name">
+        <a-avatar
+          :src="user.avatar"
+          :style="!user.avatar ? { backgroundColor: '#1890ff' } : undefined"
+        >
+          <template v-if="!user.avatar">{{ user.name[0] }}</template>
+        </a-avatar>
+      </a-tooltip>
     </a-avatar-group>
     <a-progress :percent="task.tienDo" style="margin: 8px 0 0 0" />
     <div

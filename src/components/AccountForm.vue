@@ -26,7 +26,7 @@
               <a-input v-model:value="user.email" :disabled="!isAdmin"/>
             </a-form-item>
 
-            <a-form-item v-if="!isEditMode" label="Mật khẩu" name="Password">
+            <a-form-item v-if="!isEditMode || isAdmin" label="Mật khẩu" name="Password">
               <a-input-password
                 v-model:value="user.Password"
                 autocomplete="new-password"

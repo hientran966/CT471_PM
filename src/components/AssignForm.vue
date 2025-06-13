@@ -33,7 +33,7 @@
               <span style="display: flex; justify-content: space-between; align-items: center">
                 <span>{{ dept.tenNV }}</span>
                 <a-tag :color="getTagColor(dept.assignCount)">
-                  {{ dept.assignCount }} dự án
+                  {{ dept.assignCount }} phân công đang thực hiện
                 </a-tag>
               </span>
             </a-select-option>
@@ -41,11 +41,17 @@
         </a-form-item>
 
         <a-form-item label="Độ quan trọng" name="doQuanTrong">
-          <a-input-number
+          <a-select
             v-model:value="assign.doQuanTrong"
-            :min="1"
-            style="width: 100%"
-          />
+            placeholder="Chọn độ quan trọng"
+            allow-clear
+          >
+            <a-select-option value="1">Thấp</a-select-option>
+            <a-select-option value="2">Trung bình</a-select-option>
+            <a-select-option value="3">Quan trọng</a-select-option>
+            <a-select-option value="4">Rất quan trọng</a-select-option>
+            <a-select-option value="5">Cực kỳ quan trọng</a-select-option>
+          </a-select>
         </a-form-item>
       </a-form>
     </a-modal>
@@ -93,15 +99,19 @@ const rules: Record<string, Rule[]> = {
     { min: 3, max: 50, message: "Mô tả từ 3-50 ký tự", trigger: "blur" },
   ],
   idNguoiNhan: [{ required: true, message: "Chọn nhân viên", trigger: "change" }],
-  doQuanTrong: [{ required: true, type: "number", message: "Nhập độ quan trọng", trigger: "change" }],
+  doQuanTrong: [
+    { required: true, message: "Chọn độ quan trọng", trigger: "change" },
+  ],
 };
 
 const resetForm = () => {
-  formRef.value.resetFields();
+  assign.moTa = "";
+  assign.doQuanTrong = null;
+  assign.idNguoiNhan = null;
 };
 
-
 const showModal = () => {
+  resetForm();
   open.value = true;
 };
 

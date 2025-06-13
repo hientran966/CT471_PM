@@ -8,105 +8,111 @@
           <h1>Chi tiết phân công</h1>
         </a-col>
         <a-col :span="12" style="text-align: right;">
-          <a-button type="primary" @click="assignForm?.showModal()">Phân công mới</a-button>
+          <a-space>
+            <a-button type="primary" @click="$router.push({ name: 'file', query: { taskId: props.taskId, projectId: props.projectId } })">Xem tất cả file</a-button>
+            <a-button type="primary" @click="transferList?.showModal()">Yêu cầu chuyển giao</a-button>
+            <a-button type="primary" @click="assignForm?.showModal()">Phân công mới</a-button>
+          </a-space>
         </a-col>
       </a-row>
 
-      <a-row
-        v-for="assign in paginatedAssigns"
-        :key="assign.id"
-        :span="20"
-      >
-        <AssignDetail :assign="assign" @updated="handleUpdated" :task-id="props.taskId"/>
-      </a-row>
-
-      <a-pagination
-        v-model:current="currentPage"
-        :page-size="pageSize"
-        :total="filteredAssigns.length"
-        style="margin-top: 20px; text-align: center;"
-      />
-
-      <div style="margin-top: 40px;">
-        <a-row :gutter="[16, 16]" style="margin-bottom: 20px; margin-top: 20px;">
-          <a-col :span="12">
-            <h3>File</h3>
-          </a-col>
-          <a-col :span="12" style="text-align: right;">
-            <a-space>
-              <a-button type="primary" @click="$router.push({ name: 'file', query: { taskId: props.taskId, projectId: props.projectId } })">Xem tất cả file</a-button>
-              <a-button type="dashed" @click="fileForm?.showModal()">Tải lên file</a-button>
-            </a-space>
-          </a-col>
+      <!-- Chờ nhận -->
+      <template v-if="filteredWaiting.length">
+        <h3>Chờ nhận</h3>
+        <a-row v-for="assign in filteredWaiting" :key="assign.id">
+          <AssignDetail :assign="assign" @updated="handleUpdated" :task-id="props.taskId" />
         </a-row>
+      </template>
 
-        <a-row :gutter="[16, 16]">
-          <a-col
-            v-for="file in recentFiles"
-            :key="file.id"
-            :span="6"
-          >
-            <FileCard :file="file" @preview="handlePreview" />
-          </a-col>
+      <!-- Đang thực hiện -->
+      <template v-if="filteredInProgress.length">
+        <h3>Đang thực hiện</h3>
+        <a-row v-for="assign in filteredInProgress" :key="assign.id">
+          <AssignDetail :assign="assign" @updated="handleUpdated" :task-id="props.taskId" />
         </a-row>
-      </div>
+        
+        <a-pagination
+          v-model:current="currentPage"
+          :page-size="pageSize"
+          :total="paginatedAssigns.length"
+          style="margin-top: 20px; text-align: center;"
+        />
+      </template>
+
+      <!-- Đã từ chối -->
+      <template v-if="filteredRejected.length">
+        <h3>Đã từ chối</h3>
+        <a-row v-for="assign in filteredRejected" :key="assign.id">
+          <AssignDetail :assign="assign" @updated="handleUpdated" :task-id="props.taskId" />
+        </a-row>
+      </template>
     </a-space>
     <AssignForm ref="assignForm" @created="handleCreated" :task-id="props.taskId"/>
-    <FileForm ref="fileForm" @uploaded="handleFileUploaded" :task-id="props.taskId" />
-    <FileDetail
-      :file="selectedFile"
-      :task-creator-id="taskCreatorId"
-      ref="detailRef"
-      @submitted="handleReview"
-      @approved="handleApprove"
-      @uploadVer="handleUploadNewVersion"
-    />
+    <TransferList ref="transferList" />
   </div>
 </template>
 
 <script setup>
 import InputSearch from "@/components/InputSearch.vue";
 import AssignDetail from "@/components/AssignDetail.vue";
-import FileCard from "@/components/FileCard.vue";
 import AssignForm from "@/components/AssignForm.vue";
-import FileForm from "@/components/FileForm.vue";
-import FileDetail from "@/components/FileDetail.vue";
+import TransferList from "@/components/TransferList.vue";
 import TaskService from "@/services/CongViec.service";
 import AssignService from "@/services/PhanCong.service";
-import FileService from "@/services/File.service";
-import NotificationService from "@/services/ThongBao.service";
-import { ref, computed, watch } from "vue";
+import AuthService from "@/services/TaiKhoan.service";
+import { ref, computed, watch, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import { message } from "ant-design-vue";
-import Task from "@/views/Task.vue";
 
 const props = defineProps(['taskId', 'projectId']);
 const router = useRouter();
 
 const searchText = ref("");
 const assigns = ref([]);
-const files = ref([]);
 const assignForm = ref(null);
-const fileForm = ref(null);
+const transferList = ref(null);
 const taskCreatorId = ref("");
+
+const isCreator = computed(() => {
+  return taskCreatorId.value && currentUser.value && taskCreatorId.value === currentUser.value.id;
+});
 
 const currentPage = ref(1);
 const pageSize = 5;
 
-const filteredAssigns = computed(() =>
-  assigns.value
-    .filter(t => t.moTa.toLowerCase().includes(searchText.value.toLowerCase()))
-    .filter(t => t.trangThai !== 'Đã chuyển giao')
+const currentUser = ref(null);
+
+onMounted(async () => {
+  currentUser.value = await AuthService.getCurrentUser();
+});
+
+const filteredAssigns = computed(() => {
+  if (isCreator.value) {
+    return assigns.value
+      .filter(t => t.moTa.toLowerCase().includes(searchText.value.toLowerCase()))
+      .filter(t => t.trangThai !== 'Đã chuyển giao');
+  } else {
+    return assigns.value
+      .filter(t => t.idNguoiNhan === currentUser.value?.id)
+      .filter(t => t.moTa.toLowerCase().includes(searchText.value.toLowerCase()))
+      .filter(t => t.trangThai !== 'Đã chuyển giao');
+  }
+});
+
+const filteredWaiting = computed(() =>
+  filteredAssigns.value.filter(a => !a.ngayNhan && a.trangThai !== 'Đã từ chối')
+);
+
+const filteredInProgress = computed(() =>
+  filteredAssigns.value.filter(a => a.ngayNhan && a.trangThai !== 'Đã từ chối')
+);
+
+const filteredRejected = computed(() =>
+  filteredAssigns.value.filter(a => a.trangThai === 'Đã từ chối')
 );
 
 const paginatedAssigns = computed(() => {
   const start = (currentPage.value - 1) * pageSize;
-  return filteredAssigns.value.slice(start, start + pageSize);
-});
-
-const recentFiles = computed(() => {
-  const lastFive = files.value.slice(-5);
-  return lastFive.reverse();
+  return filteredInProgress.value.slice(start, start + pageSize);
 });
 
 function formatDateTime(date) {
@@ -115,7 +121,6 @@ function formatDateTime(date) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} `
        + `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
-
 
 const loadAssigns = async () => {
   if (!props.taskId) {
@@ -131,38 +136,6 @@ const loadAssigns = async () => {
   }
 };
 
-const loadFiles = async () => {
-  try {
-    const rawFiles = await FileService.getFilesByTask(props.taskId || "");
-
-    const fileMap = new Map();
-
-    for (const f of rawFiles) {
-      const fileKey = f.id;
-
-      if (!fileMap.has(fileKey)) {
-        fileMap.set(fileKey, f);
-      } else {
-        const existing = fileMap.get(fileKey);
-
-        if ((f.soPB || 0) > (existing.soPB || 0)) {
-          fileMap.set(fileKey, f);
-        }
-      }
-    }
-
-    files.value = Array.from(fileMap.values());
-
-  } catch (error) {
-    console.error("Error loading files:", error);
-    files.value = [];
-  }
-};
-
-const handleUploadNewVersion = (fileId) => {
-  fileForm.value.showModal(fileId);
-};
-
 const handleCreated = async () => {
   await loadAssigns();
 };
@@ -172,55 +145,8 @@ const handleUpdated = async () => {
   currentPage.value = 1;
 };
 
-const handleFileUploaded = async () => {
-  await loadFiles();
-};
-
-const selectedFile = ref(null);
-const detailRef = ref();
-
-const handlePreview = (file) => {
-  selectedFile.value = file;
-  detailRef.value?.showModal();
-};
-
-const handleReview = ({ idFile, review, idNguoiDang }) => {
-  if (!review?.trim()) {
-    message.warning("Nội dung đánh giá không được để trống!");
-    return;
-  }
-
-  NotificationService.createNotification({
-    tieuDe: "Đánh giá file",
-    noiDung: review.trim(),
-    idPhienBan: idFile,
-    ngayDang: formatDateTime(new Date()),
-    idNguoiDang: idNguoiDang,
-  })
-    .then(() => {
-      message.success("Đánh giá đã được gửi thành công!");
-      detailRef.value?.showModal();
-    })
-    .catch((error) => {
-      message.error("Lỗi khi gửi đánh giá: " + error.message);
-    });
-};
-
-
-const handleApprove = ({ idFile }) => {
-  // Gửi API duyệt file
-  FileService.approveVersion(idFile)
-    .then(() => {
-      message.success("File đã được duyệt thành công!");
-    })
-    .catch(error => {
-      message.error("Lỗi khi duyệt file: " + error.message);
-    });
-};
-
 watch(() => props.taskId, async () => {
   await loadAssigns();
-  await loadFiles();
 }, { immediate: true });
 watch(searchText, () => {
   currentPage.value = 1;

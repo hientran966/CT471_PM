@@ -5,21 +5,23 @@
     </template>
     <template #extra>
       <a-space>
-        <a v-if="!assign.ngayNhan && assign.trangThai !='Đã từ chối'" type="link" @click="handleAccept" href="#">Nhận</a>
-        <a v-if="!assign.ngayNhan && assign.trangThai !='Đã từ chối'" type="link" @click="handleReject" href="#">Từ Chối</a>
-        <a v-if="assign.ngayNhan && isAssigned" type="link" @click="reportForm?.showModal()" href="#">Cập Nhật</a>
-        <a v-if="assign.ngayNhan && isAssigned" type="link" @click="transferForm?.showModal()" href="#">Chuyển</a>
-        <a type="link" @click="transferHistoryRef?.showModal()" href="#">Xem</a>
+        <a v-if="!assign.ngayNhan && assign.trangThai !='Đã từ chối' && isAssigned && !view" type="link" @click="handleAccept" href="#">Nhận</a>
+        <a v-if="!assign.ngayNhan && assign.trangThai !='Đã từ chối' && isAssigned && !view" type="link" @click="handleReject" href="#">Từ Chối</a>
+        <a v-if="assign.ngayNhan && isAssigned && !view" type="link" @click="reportForm?.showModal()" href="#">Cập Nhật</a>
+        <a v-if="assign.ngayNhan && isAssigned && !view" type="link" @click="transferForm?.showModal()" href="#">Chuyển</a>
+        <a v-if="assign.trangThai !='Đã từ chối' && !view" type="link" @click="transferHistoryRef?.showModal()" href="#">Xem</a>
       </a-space>
     </template>
     <div style="display: flex; align-items: center; gap: 8px;">
       <template v-for="(user, idx) in participants" :key="idx">
-        <a-avatar
-        :src="user.avatar"
-        :style="!user.avatar ? { backgroundColor: '#1890ff' } : undefined"
-        >
-        <template v-if="!user.avatar">{{ user.name?.charAt(0) || '?' }}</template>
-        </a-avatar>
+        <a-tooltip :title="user.name">
+          <a-avatar
+          :src="user.avatar"
+          :style="!user.avatar ? { backgroundColor: '#1890ff' } : undefined"
+          >
+          <template v-if="!user.avatar">{{ user.name?.charAt(0) || '?' }}</template>
+          </a-avatar>
+        </a-tooltip>
         <span
         v-if="idx < participants.length - 1"
         style="margin: 0 4px; font-size: 18px; color: #aaa;"
@@ -61,7 +63,7 @@
 import { ref, onMounted, computed } from "vue";
 import AccountService from "@/services/TaiKhoan.service";
 import AssignService from "@/services/PhanCong.service";
-import TransferHistory from './TransferHistory.vue';
+import TransferHistory from '@/components/TransferHistory.vue';
 import ReportForm from "@/components/ReportForm.vue";
 import TransferForm from "@/components/TransferForm.vue";
 import dayjs from "dayjs";
@@ -78,6 +80,7 @@ const props = defineProps<{
     tienDoCaNhan: number
   },
   taskId?: string | null;
+  view?: boolean;
 }>();
 
 const emit = defineEmits(["updated"]);
