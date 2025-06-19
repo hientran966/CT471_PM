@@ -20,7 +20,7 @@
 
         <a-form-item label="Nhân viên đảm nhận" name="idNguoiNhan">
           <a-select
-            mode="multiple"
+            :mode="isEditMode ? undefined : 'multiple'"
             v-model:value="assign.idNguoiNhan"
             placeholder="Chọn phòng ban"
             :loading="deptLoading"
@@ -69,9 +69,12 @@ import AuthService from "@/services/TaiKhoan.service";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 
 dayjs.extend(isSameOrBefore);
-const emit = defineEmits(["created"]);
+const emit = defineEmits(["created", "updated"]);
 
-const props = defineProps<{ taskId: string }>();
+const props = defineProps<{
+  taskId: string;
+  assignId?: string | null;
+}>();
 
 const formRef = ref();
 const accounts = ref<{
@@ -81,6 +84,7 @@ const accounts = ref<{
 }[]>([]);
 const deptLoading = ref(false);
 const open = ref<boolean>(false);
+const isEditMode = ref(false);
 
 const assign = reactive({
   moTa: "",
@@ -113,8 +117,18 @@ const resetForm = () => {
   assign.idNguoiNhan = [];
 };
 
-const showModal = () => {
-  resetForm();
+const showModal = async () => {
+  if (props.assignId) {
+    const existingAssign = await AssignService.getAssignmentById(props.assignId);
+    isEditMode.value = true;
+    assign.moTa = existingAssign.moTa;
+    assign.doQuanTrong = existingAssign.doQuanTrong;
+    assign.idNguoiNhan = [existingAssign.idNguoiNhan];
+  } else {
+    isEditMode.value = false;
+    resetForm();
+  }
+
   open.value = true;
 };
 
@@ -122,21 +136,34 @@ const handleOk = async () => {
   try {
     await formRef.value.validate();
 
-    const promises = assign.idNguoiNhan.map((userId) =>
-      AssignService.createAssignment({
+    if (isEditMode.value && props.assignId) {
+      // Chế độ cập nhật
+      await AssignService.updateAssignment(props.assignId, {
         moTa: assign.moTa,
         doQuanTrong: assign.doQuanTrong,
-        tienDoCaNhan: 0,
-        idNguoiNhan: userId,
-        idCongViec: props.taskId,
-      })
-    );
+        idNguoiNhan: assign.idNguoiNhan[0],
+      });
+      message.success("Cập nhật phân công thành công", 5);
+      emit("updated");
 
-    await Promise.all(promises);
+    } else {
+      // Chế độ tạo mới
+      const promises = assign.idNguoiNhan.map((userId) =>
+        AssignService.createAssignment({
+          moTa: assign.moTa,
+          doQuanTrong: assign.doQuanTrong,
+          tienDoCaNhan: 0,
+          idNguoiNhan: userId,
+          idCongViec: props.taskId,
+        })
+      );
+      await Promise.all(promises);
+      message.success("Tạo phân công thành công", 5);
+      emit("created");
+    }
 
     open.value = false;
-    message.success("Tạo phân công thành công", 5);
-    emit("created");
+
   } catch (error) {
     console.warn("Validation failed:", error);
     message.error("Có lỗi xảy ra", 5);

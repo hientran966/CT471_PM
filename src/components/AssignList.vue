@@ -11,7 +11,7 @@
           <a-space>
             <a-button type="primary" @click="$router.push({ name: 'file', query: { taskId: props.taskId, projectId: props.projectId } })">Xem tất cả file</a-button>
             <a-button type="primary" @click="transferList?.showModal()">Yêu cầu chuyển giao</a-button>
-            <a-button type="primary" @click="assignForm?.showModal()">Phân công mới</a-button>
+            <a-button v-if="isCreator" type="primary" @click="assignForm?.showModal()">Phân công mới</a-button>
           </a-space>
         </a-col>
       </a-row>

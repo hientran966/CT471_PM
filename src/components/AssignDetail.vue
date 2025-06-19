@@ -5,12 +5,23 @@
     </template>
     <template #extra>
       <a-space>
-        <a v-if="isManager && !view" type="link" @click="handleEdit" href="#">Sửa</a>
         <a v-if="!assign.ngayNhan && assign.trangThai !='Đã từ chối' && isAssigned && !view" type="link" @click="handleAccept" href="#">Nhận</a>
-        <a v-if="!assign.ngayNhan && assign.trangThai !='Đã từ chối' && isAssigned && !view" type="link" @click="handleReject" href="#">Từ Chối</a>
+
+        <a-popconfirm title="Xác nhận từ chối phân công?" @confirm="handleReject" ok-text="Xác nhận" cancel-text="Hủy">
+          <a v-if="!assign.ngayNhan && assign.trangThai !='Đã từ chối' && isAssigned && !view" type="link" href="#">Từ Chối</a>
+        </a-popconfirm>
+
+        <a v-if="isManager && assign.tienDoCaNhan==0 && !view" type="link" @click="handleEdit" href="#">Sửa</a>
+
+        <a-popconfirm title="Xác nhận thu hồi phân công?" @confirm="handleRemove" ok-text="Xác nhận" cancel-text="Hủy">
+          <a v-if="isManager && assign.trangThai== 'Chưa bắt đầu' && !view" type="link" href="#">Thu hồi</a>
+        </a-popconfirm>
+
         <a v-if="assign.ngayNhan && isAssigned && !view" type="link" @click="reportForm?.showModal()" href="#">Cập Nhật</a>
+
         <a v-if="assign.ngayNhan && isAssigned && !view" type="link" @click="transferForm?.showModal()" href="#">Chuyển</a>
-        <a v-if="assign.trangThai !='Đã từ chối' && !view" type="link" @click="transferHistoryRef?.showModal()" href="#">Xem</a>
+
+        <a v-if="assign.trangThai =='Đang thực hiện' && !view" type="link" @click="transferHistoryRef?.showModal()" href="#">Xem</a>
       </a-space>
     </template>
     <div style="display: flex; align-items: center; gap: 8px;">
@@ -58,6 +69,7 @@
   <TransferHistory ref="transferHistoryRef" :transfers="[...allAssignments].reverse()" :assign="assign.id" :taskId="taskId"/>
   <ReportForm ref="reportForm" @created="handleUpdated" :assign="assign" :task="props.taskId"/>
   <TransferForm ref="transferForm" @created="handleTransfer" :assign-id="assign.id"/>
+  <AssignForm ref="assignForm" @updated="handleUpdated" :task-id="props.taskId" :assignId="assign.id"/>
 </template>
 
 <script setup lang="ts">
@@ -68,8 +80,10 @@ import TaskService from "@/services/CongViec.service";
 import TransferHistory from '@/components/TransferHistory.vue';
 import ReportForm from "@/components/ReportForm.vue";
 import TransferForm from "@/components/TransferForm.vue";
+import AssignForm from "@/components/AssignForm.vue";
 import dayjs from "dayjs";
 import { message } from "ant-design-vue";
+import { c } from "vite/dist/node/moduleRunnerTransport.d-DJ_mE5sf";
 
 const props = defineProps<{
   assign: {
@@ -79,7 +93,8 @@ const props = defineProps<{
     ngayNhan?: string,
     ngayHoanTat?: string,
     idNguoiNhan: string,
-    tienDoCaNhan: number
+    tienDoCaNhan: number,
+    doQuanTrong?: number,
   },
   taskId?: string | null;
   view?: boolean;
@@ -92,6 +107,7 @@ const transferHistoryRef = ref();
 const allAssignments = ref<any[]>([]);
 const reportForm = ref();
 const transferForm = ref();
+const assignForm = ref();
 const manager = ref();
 const user = ref({
   id: "",
@@ -142,7 +158,7 @@ const handleReject = async () => {
 
 const handleUpdated = async () => {
   emit("updated");
-  console.log("Cập nhật báo cáo thành công");
+  console.log("Cập nhật thành công");
 };
 
 const handleTransfer = async () => {
@@ -151,7 +167,17 @@ const handleTransfer = async () => {
 };
 
 const handleEdit = () => {
-  reportForm.value?.showModal();
+  assignForm.value?.showModal();
+};
+
+const handleRemove = async () => {
+  try {
+    await AssignService.deleteAssignment(props.assign.id);
+    message.success("Đã thu hồi thành công");
+    emit("updated");
+  } catch (err) {
+    console.error("Lỗi khi thu hồi phân công", err);
+  }
 };
 
 onMounted(async () => {

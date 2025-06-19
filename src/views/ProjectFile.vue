@@ -96,7 +96,7 @@ watch(() => getprojectId(), loadData, { immediate: true });
 
 <style scoped>
 .all-task-scroll {
-  min-width: 1100px;
+  min-width: 800px;
   height: 100vh;
   overflow-y: auto;
   background-attachment: scroll;
