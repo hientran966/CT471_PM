@@ -4,11 +4,11 @@
       <h3>Danh sách File</h3>
       <InputSearch v-model="searchText" />
       <br>
-      <a-row :gutter="[16, 16]">
+      <a-row :gutter="[16, 16]" justify="start">
         <a-col
-          v-for="file in [...files].reverse().filter(t => t.tenFile.toLowerCase().includes(searchText.toLowerCase()))"
+          v-for="file in filteredFiles"
           :key="file.id"
-          :span="6"
+          :span="8"
         >
           <FileCard :file="file" @preview="handlePreview" />
         </a-col>
@@ -21,6 +21,7 @@
     ref="detailRef"
     @submitted="handleReview"
     @approved="handleApprove"
+    @updated="loadData"
   />
 </template>
 
@@ -31,7 +32,7 @@ import FileDetail from "@/components/FileDetail.vue";
 import FileService from "@/services/File.service";
 import NotificationService from "@/services/ThongBao.service";
 import TaskService from "@/services/CongViec.service";
-import { ref, watch } from "vue";
+import { ref, watch, computed } from "vue";
 import { useRoute } from "vue-router";
 import { message } from "ant-design-vue";
 
@@ -52,41 +53,58 @@ function formatDateTime(date) {
        + `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
 
+const filteredFiles = computed(() =>
+  [...files.value]
+    .reverse()
+    .filter(f => f.tenFile.toLowerCase().includes(searchText.value.toLowerCase()))
+);
+
 const handlePreview = (file) => {
   selectedFile.value = file;
   detailRef.value?.showModal();
 };
 
-const handleReview = ({ idFile, review, idNguoiDang }) => {
+const handleReview = async ({ idFile, review, idNguoiDang }) => {
   if (!review?.trim()) {
     message.warning("Nội dung đánh giá không được để trống!");
     return;
   }
 
-  NotificationService.createNotification({
-    tieuDe: "Đánh giá file",
-    noiDung: review.trim(),
-    idPhienBan: idFile,
-    ngayDang: formatDateTime(new Date()),
-    idNguoiDang: idNguoiDang,
-  })
-    .then(() => {
-      message.success("Đánh giá đã được gửi thành công!");
-      detailRef.value?.showModal();
-    })
-    .catch((error) => {
-      message.error("Lỗi khi gửi đánh giá: " + error.message);
+  try {
+    await NotificationService.createNotification({
+      tieuDe: "Đánh giá file",
+      noiDung: review.trim(),
+      idPhienBan: idFile,
+      ngayDang: formatDateTime(new Date()),
+      idNguoiDang,
     });
+
+    message.success("Đánh giá đã được gửi thành công!");
+
+    await loadData();
+
+    const updated = files.value.find(f => f.id === selectedFile.value?.id);
+    if (updated) selectedFile.value = { ...updated };
+
+    detailRef.value?.showModal();
+
+  } catch (error) {
+    message.error("Lỗi khi gửi đánh giá: " + error.message);
+  }
 };
 
-const handleApprove = ({ idFile }) => {
-  FileService.approveVersion(idFile)
-    .then(() => {
-      message.success("File đã được duyệt thành công!");
-    })
-    .catch(error => {
-      message.error("Lỗi khi duyệt file: " + error.message);
-    });
+
+const handleApprove = async ({ idFile }) => {
+  try {
+    await FileService.approveVersion(idFile);
+    message.success("File đã được duyệt thành công!");
+    await loadData();
+
+    const updated = files.value.find(f => f.id === selectedFile.value?.id);
+    if (updated) selectedFile.value = { ...updated };
+  } catch (error) {
+    message.error("Lỗi khi duyệt file: " + error.message);
+  }
 };
 
 const loadData = async () => {

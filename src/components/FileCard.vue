@@ -29,10 +29,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import { ref, computed, watchEffect } from "vue";
 import FileService from "@/services/File.service";
-import dayjs from "dayjs";
-import { version } from "vite";
 
 const props = defineProps<{
     file: {
@@ -44,6 +42,7 @@ const props = defineProps<{
 
 const defaultAvatar = "/api/auth/avatar/AC000001"; 
 const fileSrc = ref<string>("");
+const latestStatus = ref<string>("");
 
 const backendUrl = "http://localhost:3000";
 
@@ -54,7 +53,6 @@ const isWord = computed(() => ["doc", "docx"].includes(ext.value));
 const isExcel = computed(() => ["xls", "xlsx"].includes(ext.value));
 const isPDF = computed(() => ["pdf"].includes(ext.value));
 
-const latestStatus = ref<string>("");
 const statusColor = computed(() => {
   switch (latestStatus.value) {
     case "Đã duyệt": return "green";
@@ -64,30 +62,19 @@ const statusColor = computed(() => {
   }
 });
 
-onMounted(async () => {
+watchEffect(async () => {
+  if (!props.file?.id) return;
+
   try {
     const versions = await FileService.getAllVersions(props.file.id);
-
-    if (versions && versions.length > 0) {
+    if (versions.length) {
       const latest = versions[versions.length - 1];
       fileSrc.value = `${backendUrl}/${latest.duongDan}`;
       latestStatus.value = latest.trangThai || "";
     }
-
   } catch (err) {
+    fileSrc.value = "";
     latestStatus.value = "";
-  }
-});
-
-onMounted(async () => {
-  try {
-    const versions = await FileService.getAllVersions(props.file.id);
-
-    if (versions && versions.length > 0) {
-      fileSrc.value = `${backendUrl}/${versions[versions.length - 1].duongDan}`;
-    }
-
-  } catch (err) {
   }
 });
 </script>

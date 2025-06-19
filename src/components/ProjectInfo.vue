@@ -120,7 +120,7 @@ const computeTaskStatus = (task) => {
   }
   if (ngayBD && ngayBD.isAfter(now, 'day')) {
     const diffDays = ngayBD.diff(now, 'day');
-    return `Bắt đầu sau ${diffDays} ngày`;
+    return `Bắt đầu sau ${diffDays + 1} ngày`;
   }
   if (ngayBD && (ngayBD.isBefore(now, 'day') || ngayBD.isSame(now, 'day'))) {
     return "Đang tiến hành";

@@ -20,6 +20,7 @@
 
         <a-form-item label="Nhân viên đảm nhận" name="idNguoiNhan">
           <a-select
+            mode="multiple"
             v-model:value="assign.idNguoiNhan"
             placeholder="Chọn phòng ban"
             :loading="deptLoading"
@@ -84,7 +85,7 @@ const open = ref<boolean>(false);
 const assign = reactive({
   moTa: "",
   doQuanTrong: null as number | null,
-  idNguoiNhan: null as string | null,
+  idNguoiNhan: [] as string[],
 });
 
 function getTagColor(count: number) {
@@ -98,7 +99,9 @@ const rules: Record<string, Rule[]> = {
     { required: true, message: "Xin nhập mô tả", trigger: "blur" },
     { min: 3, max: 50, message: "Mô tả từ 3-50 ký tự", trigger: "blur" },
   ],
-  idNguoiNhan: [{ required: true, message: "Chọn nhân viên", trigger: "change" }],
+  idNguoiNhan: [
+    { required: true, message: "Chọn ít nhất 1 nhân viên", trigger: "change" },
+  ],
   doQuanTrong: [
     { required: true, message: "Chọn độ quan trọng", trigger: "change" },
   ],
@@ -107,7 +110,7 @@ const rules: Record<string, Rule[]> = {
 const resetForm = () => {
   assign.moTa = "";
   assign.doQuanTrong = null;
-  assign.idNguoiNhan = null;
+  assign.idNguoiNhan = [];
 };
 
 const showModal = () => {
@@ -118,15 +121,21 @@ const showModal = () => {
 const handleOk = async () => {
   try {
     await formRef.value.validate();
-    await AssignService.createAssignment({
-      moTa: assign.moTa,
-      doQuanTrong: assign.doQuanTrong,
-      tienDoCaNhan: 0,
-      idNguoiNhan: assign.idNguoiNhan,
-      idCongViec: props.taskId,
-    });
+
+    const promises = assign.idNguoiNhan.map((userId) =>
+      AssignService.createAssignment({
+        moTa: assign.moTa,
+        doQuanTrong: assign.doQuanTrong,
+        tienDoCaNhan: 0,
+        idNguoiNhan: userId,
+        idCongViec: props.taskId,
+      })
+    );
+
+    await Promise.all(promises);
+
     open.value = false;
-    message.success("Cập nhật dự án thành công", 5);
+    message.success("Tạo phân công thành công", 5);
     emit("created");
   } catch (error) {
     console.warn("Validation failed:", error);

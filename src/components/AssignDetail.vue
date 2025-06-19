@@ -5,6 +5,7 @@
     </template>
     <template #extra>
       <a-space>
+        <a v-if="isManager && !view" type="link" @click="handleEdit" href="#">Sửa</a>
         <a v-if="!assign.ngayNhan && assign.trangThai !='Đã từ chối' && isAssigned && !view" type="link" @click="handleAccept" href="#">Nhận</a>
         <a v-if="!assign.ngayNhan && assign.trangThai !='Đã từ chối' && isAssigned && !view" type="link" @click="handleReject" href="#">Từ Chối</a>
         <a v-if="assign.ngayNhan && isAssigned && !view" type="link" @click="reportForm?.showModal()" href="#">Cập Nhật</a>
@@ -63,6 +64,7 @@
 import { ref, onMounted, computed } from "vue";
 import AccountService from "@/services/TaiKhoan.service";
 import AssignService from "@/services/PhanCong.service";
+import TaskService from "@/services/CongViec.service";
 import TransferHistory from '@/components/TransferHistory.vue';
 import ReportForm from "@/components/ReportForm.vue";
 import TransferForm from "@/components/TransferForm.vue";
@@ -90,6 +92,7 @@ const transferHistoryRef = ref();
 const allAssignments = ref<any[]>([]);
 const reportForm = ref();
 const transferForm = ref();
+const manager = ref();
 const user = ref({
   id: "",
   tenNV: "",
@@ -101,6 +104,10 @@ const user = ref({
 
 const isAssigned = computed(() => {
   return props.assign.idNguoiNhan === user.value.id;
+});
+
+const isManager = computed(() => {
+  return user.value.id === manager.value;
 });
 
 const formatDateToMySQL = (date: Date) => {
@@ -143,8 +150,13 @@ const handleTransfer = async () => {
   console.log("Chuyển giao thành công");
 };
 
+const handleEdit = () => {
+  reportForm.value?.showModal();
+};
+
 onMounted(async () => {
   try {
+    manager.value = await TaskService.getTaskById(props.taskId).then(task => task.idNguoiTao || "");
     // Lấy toàn bộ lịch sử chuyển giao
     let currentId = props.assign.id;
     const assignmentIds = [currentId];

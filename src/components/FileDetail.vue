@@ -38,7 +38,7 @@
               type="dashed"
               size="small"
               class="upload-button"
-              @click="uploadNewVersion"
+              @click="fileForm?.showModal()"
             >
               Tải lên phiên bản mới
             </a-button>
@@ -112,6 +112,7 @@
       </div>
     </div>
   </a-modal>
+  <FileForm  v-if="file" ref="fileForm" @created="handleCreated" :fileId="file.id"/>
 </template>
 
 <script setup>
@@ -119,6 +120,7 @@ import { ref, watch, computed } from "vue";
 import FileService from "@/services/File.service";
 import AccountService from "@/services/TaiKhoan.service";
 import NotificationService from "@/services/ThongBao.service";
+import FileForm from "@/components/FileForm.vue";
 import dayjs from "dayjs";
 
 // Props & Emits
@@ -126,7 +128,7 @@ const props = defineProps({
   file: Object,
   taskCreatorId: String,
 });
-const emit = defineEmits(["submitted", "approved"]);
+const emit = defineEmits(["submitted", "approved", "updated"]);
 
 // State
 const open = ref(false);
@@ -136,6 +138,7 @@ const versions = ref([]);
 const user = ref({});
 const reviews = ref([]);
 const reviewUsers = ref({});
+const fileForm = ref();
 
 AccountService.getCurrentUser().then((data) => {
   user.value = data;
@@ -148,8 +151,8 @@ const ext = computed(() => props.file?.tenFile?.split(".").pop()?.toLowerCase() 
 const isImage = computed(() => ["jpg", "jpeg", "png", "gif", "bmp", "webp"].includes(ext.value));
 const isPDF = computed(() => ext.value === "pdf");
 
-const canReview = computed(() => user.value.id === props.taskCreatorId);
-const canUpdate = computed(() => user.value.id === props.file.idNguoiTao);
+const canReview = computed(() => props.file && user.value.id === props.taskCreatorId);
+const canUpdate = computed(() => props.file && user.value.id === props.file.idNguoiTao);
 
 const selectedVersion = computed(() =>
   versions.value.find(v => `${backendUrl}/${v.duongDan}` === fileSrc.value)
@@ -229,13 +232,14 @@ const approveFile = () => {
   open.value = false;
 };
 
+const handleCreated = () => {
+  emit("updated");
+  open.value = false;
+};
+
 const selectVersion = (item) => {
   fileSrc.value = `${backendUrl}/${item.duongDan}`;
   loadReviews(item.id);
-};
-
-const uploadNewVersion = () => {
-  emit("uploadVer", props.file.id);
 };
 
 // Định dạng ngày

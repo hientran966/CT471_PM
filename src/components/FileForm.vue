@@ -57,7 +57,7 @@ const open = ref<boolean>(false);
 const currentFileId = ref(null);
 
 const showModal = (fileId = null) => {
-  currentFileId.value = fileId;
+  currentFileId.value = props.fileId || fileId;
   open.value = true;
 };
 
