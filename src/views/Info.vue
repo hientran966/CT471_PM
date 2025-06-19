@@ -59,6 +59,10 @@ onMounted(async () => {
       "Thông tin dự án",
       "info"
     ),
+    getItem(
+      "File",
+      "file"
+    ),
   ];
 });
 function onMenuClick({ key }) {
@@ -68,7 +72,9 @@ function onMenuClick({ key }) {
     router.push({ name: "project" });
   } else if (key === "info") {
     router.push({ name: "info", query: { projectId: projectId.value } });
-  } 
+  } else if (key === "file") {
+    router.push({ name: "PJfile", query: { projectId: projectId.value } });
+  }
   activeKey.value = key;
 }
 </script>

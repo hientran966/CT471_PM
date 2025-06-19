@@ -8,11 +8,11 @@
           </a-form-item>
 
           <a-form-item label="Ngày bắt đầu" name="ngayBD">
-            <a-date-picker v-model:value="project.ngayBD" style="width: 100%" />
+            <a-date-picker v-model:value="project.ngayBD" style="width: 100%" :disabled-date="isDisabledDate"/>
           </a-form-item>
 
           <a-form-item label="Ngày kết thúc" name="ngayKT">
-            <a-date-picker v-model:value="project.ngayKT" style="width: 100%" />
+            <a-date-picker v-model:value="project.ngayKT" style="width: 100%" :disabled-date="isDisabledDate"/>
           </a-form-item>
 
           <a-form-item label="Số ngày làm việc" name="soNgay">
@@ -49,22 +49,49 @@ const danhSachNgayNghi = ref([]);
 
 const loadNgayNghi = async () => {
   const res = await CalendarService.getAllCalendars();
-  danhSachNgayNghi.value = res.map(item => item.ngay);
+  const daysOff: string[] = [];
+
+  res.forEach(item => {
+    let start = dayjs(item.ngayBD);
+    const end = dayjs(item.ngayKT);
+
+    while (start.isSameOrBefore(end)) {
+      daysOff.push(start.format("YYYY-MM-DD"));
+      start = start.add(1, "day");
+    }
+  });
+
+  danhSachNgayNghi.value = daysOff;
 };
 
 onMounted(loadNgayNghi);
 
 const formatDate = (date) => dayjs(date).format("YYYY-MM-DD");
-const isNgayLamViec = (date) => !danhSachNgayNghi.value.includes(formatDate(date));
+
+const isNgayLamViec = (date: Dayjs) => {
+  const isWeekend = date.day() === 0 || date.day() === 6;
+  const isHoliday = danhSachNgayNghi.value.includes(formatDate(date));
+  return !isWeekend && !isHoliday;
+};
+
+const isDisabledDate = (current: Dayjs) => {
+  return !isNgayLamViec(current);
+};
 
 const tinhNgayKT = () => {
   if (!project.soNgay || !project.ngayBD) return;
+
   let current = dayjs(project.ngayBD);
   let count = 0;
-  while (count < project.soNgay - 1) {
+
+  while (count < project.soNgay) {
+    if (isNgayLamViec(current)) {
+      count++;
+      if (count === project.soNgay) break;
+    }
     current = current.add(1, "day");
-    if (isNgayLamViec(current)) count++;
   }
+
   project.ngayKT = current;
 };
 

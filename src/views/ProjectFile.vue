@@ -1,5 +1,5 @@
 <template>
-  <div class="row" style="max-height: 100vh;">
+    <div class="row" style="max-height: 100vh;">
     <div class="col-4" style="background-attachment: fixed;">
       <Menu 
         :items="items"
@@ -9,23 +9,35 @@
       />
     </div>
     <div class="col-8  all-task-scroll">
-      <AssignList :taskId="taskId" :projectId="projectId"/>
+      <FileList :projectId="projectId" /> 
     </div>
   </div>
 </template>
 
 <script setup>
+import { ref, watch, h, onMounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { ref, h, onMounted, computed } from "vue";
 import ProjectService from "@/services/DuAn.service"
-import AssignList from '@/components/AssignList.vue';
+import FileList from "@/components/ProjectFile.vue";
 import Menu from '@/components/Menu.vue';
 
+const props = defineProps(['projectId']);
 const route = useRoute();
 const router = useRouter();
-const taskId = ref("");
 const projectId = computed(() => String(route.query.projectId || ""));
 const items = ref([]);
+
+const files = ref([]);
+
+const getprojectId = () => props.projectId || route.query.projectId || "";
+
+const loadData = async () => {
+  const projectId = getprojectId();
+  if (!projectId) {
+    files.value = [];
+    return;
+  }
+};
 
 function getItem(label, key, icon, children, type) {
   return {
@@ -37,10 +49,10 @@ function getItem(label, key, icon, children, type) {
   };
 }
 
-const activeKey = ref("0");
+const activeKey = ref("file");
 
 onMounted(async () => {
-  taskId.value = route.query.taskId || "";
+  projectId.value = route.query.projectId || "";
   const projects = await ProjectService.getAllProjects();
   items.value = [
     getItem(
@@ -61,8 +73,8 @@ onMounted(async () => {
     ),
     getItem(
       "File",
-      "file" 
-    )
+      "file"
+    ),
   ];
 });
 function onMenuClick({ key }) {
@@ -78,10 +90,13 @@ function onMenuClick({ key }) {
   activeKey.value = key;
 }
 
+
+watch(() => getprojectId(), loadData, { immediate: true });
 </script>
 
 <style scoped>
 .all-task-scroll {
+  min-width: 1100px;
   height: 100vh;
   overflow-y: auto;
   background-attachment: scroll;

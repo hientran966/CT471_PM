@@ -26,7 +26,15 @@ class FileService {
     }
 
     async getFilesByTask(taskId) {
-        return (await this.api.get(`/?task=${taskId}`)).data;
+        return (await this.api.get("/", {
+            params: { idCongViec: taskId }
+        })).data;
+    }
+
+    async getFilesByProject(projectId) {
+        return (await this.api.get("/", {
+            params: { idDuAn: projectId }
+        })).data;
     }
 
     async getAllVersions(fileId) {

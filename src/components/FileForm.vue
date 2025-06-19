@@ -45,6 +45,7 @@ const emit = defineEmits(["created"]);
 const props = defineProps<{
   taskId?: string;
   fileId?: string;
+  projectId?: string;
 }>();
 
 const formState = reactive({
@@ -86,6 +87,7 @@ const handleOk = async () => {
         tenFile: file.name,
         fileDataBase64: base64 ?? null,
         idCongViec: props.fileId ? null : props.taskId ?? null,
+        idDuAn: props.fileId ? null : props.projectId ?? null,
         idNguoiTao: currentUser?.id ?? null,
       };
 

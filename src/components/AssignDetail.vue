@@ -54,8 +54,8 @@
       <a-progress :percent="assign.tienDoCaNhan" style="margin: 8px 0 0 0; width: 300px;" />
     </div>
   </a-card>
-  <TransferHistory ref="transferHistoryRef" :transfers="[...allAssignments].reverse()" />
-  <ReportForm ref="reportForm" @created="handleUpdated" :assign="assign" />
+  <TransferHistory ref="transferHistoryRef" :transfers="[...allAssignments].reverse()" :assign="assign.id" :taskId="taskId"/>
+  <ReportForm ref="reportForm" @created="handleUpdated" :assign="assign" :task="props.taskId"/>
   <TransferForm ref="transferForm" @created="handleTransfer" :assign-id="assign.id"/>
 </template>
 
@@ -134,10 +134,12 @@ const handleReject = async () => {
 };
 
 const handleUpdated = async () => {
+  emit("updated");
   console.log("Cập nhật báo cáo thành công");
 };
 
 const handleTransfer = async () => {
+  emit("updated");
   console.log("Chuyển giao thành công");
 };
 

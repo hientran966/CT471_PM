@@ -49,6 +49,10 @@ class AssignmentService {
         return (await this.api.put(`/${id}/report`, data)).data;
     }
 
+    async getReport(id) {
+        return (await this.api.get(`/${id}/report`)).data;
+    }
+
     async getPendingTransfer(id) {
         return (await this.api.get(`/${id}/pending`)).data;
     }

@@ -65,6 +65,7 @@ const props = defineProps<{
     idNguoiNhan: string;
     tienDoCaNhan: number;
   } | null;
+  task?: string | null;
 }>();
 
 const formState = reactive({
@@ -74,8 +75,6 @@ const formState = reactive({
 });
 
 const formRef = ref();
-const accounts = ref<{ id: string; tenNV: string }[]>([]);
-const deptLoading = ref(false);
 const open = ref<boolean>(false);
 
 const rules: Record<string, Rule[]> = {
@@ -144,8 +143,11 @@ const handleOk = async () => {
               tenFile: file.name,
               fileDataBase64: base64,
               idPhanCong: assignId,
+              idCongViec: props.task || null,
               idNguoiTao: userId,
             };
+
+            console.log("Tạo file với payload:", filePayload);
 
             //Tạo file
             const res = await FileService.createFile(filePayload);

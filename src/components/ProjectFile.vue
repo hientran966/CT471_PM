@@ -1,14 +1,21 @@
 <template>
   <div class="all-file-container">
     <a-space direction="vertical" size="30">
-      <h3>Danh sách File</h3>
+      <a-space>
+        <h3>Danh sách File</h3>
+        <a-button
+          type="primary"
+          @click="() => createRef?.showModal()">
+          Tải lên file
+        </a-button>
+      </a-space>
       <InputSearch v-model="searchText" />
       <br>
       <a-row :gutter="[16, 16]">
         <a-col
           v-for="file in [...files].reverse().filter(t => t.tenFile.toLowerCase().includes(searchText.toLowerCase()))"
           :key="file.id"
-          :span="6"
+          :span="12"
         >
           <FileCard :file="file" @preview="handlePreview" />
         </a-col>
@@ -22,6 +29,15 @@
     @submitted="handleReview"
     @approved="handleApprove"
   />
+  <FileForm
+    ref="createRef"
+    v-if="getProjectId()"
+    :project-id="getProjectId()"
+    @file-uploaded="loadData"
+    @cancel="loadData"
+    @close="selectedFile = null"
+    @create-file="loadData"
+  />
 </template>
 
 <script setup>
@@ -29,20 +45,22 @@ import InputSearch from "@/components/InputSearch.vue";
 import FileCard from "@/components/FileCard.vue";
 import FileDetail from "@/components/FileDetail.vue";
 import FileService from "@/services/File.service";
+import FileForm from "@/components/FileForm.vue";
 import NotificationService from "@/services/ThongBao.service";
-import TaskService from "@/services/CongViec.service";
+import ProjectService from "@/services/DuAn.service";
 import { ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { message } from "ant-design-vue";
 
-const props = defineProps(['taskId']);
+const props = defineProps(['projectId']);
 const route = useRoute();
 
 const searchText = ref("");
 const files = ref([]);
-const getTaskId = () => props.taskId || route.query.taskId || "";
+const getProjectId = () => props.projectId || route.query.projectId || "";
 const selectedFile = ref(null);
 const detailRef = ref();
+const createRef = ref();
 const taskCreatorId = ref("");
 
 function formatDateTime(date) {
@@ -80,6 +98,7 @@ const handleReview = ({ idFile, review, idNguoiDang }) => {
 };
 
 const handleApprove = ({ idFile }) => {
+  // Gửi API duyệt file
   FileService.approveVersion(idFile)
     .then(() => {
       message.success("File đã được duyệt thành công!");
@@ -87,17 +106,18 @@ const handleApprove = ({ idFile }) => {
     .catch(error => {
       message.error("Lỗi khi duyệt file: " + error.message);
     });
-};
+
+  };
 
 const loadData = async () => {
-  const taskId = getTaskId();
-  if (!taskId) {
+  const projectId = getProjectId();
+  if (!projectId) {
     files.value = [];
     return;
   }
   try {
-    const rawFiles = await FileService.getFilesByTask(taskId);
-    taskCreatorId.value = await TaskService.getTaskById(taskId).then(task => task.idNguoiTao || "");
+    const rawFiles = await FileService.getFilesByProject(projectId);
+    taskCreatorId.value = await ProjectService.getProjectById(projectId).then(task => task.idNguoiTao || "");
 
     const fileMap = new Map();
 
@@ -122,7 +142,7 @@ const loadData = async () => {
   }
 };
 
-watch(() => getTaskId(), loadData, { immediate: true });
+watch(() => getProjectId(), loadData, { immediate: true });
 </script>
 
 <style scoped>

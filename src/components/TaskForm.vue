@@ -10,13 +10,13 @@
           <a-row :gutter="16">
             <a-col :span="8"> 
               <a-form-item label="Ngày bắt đầu" name="ngayBD">
-                <a-date-picker v-model:value="task.ngayBD" style="width: 100%" />
+                <a-date-picker v-model:value="task.ngayBD" style="width: 100%" :disabled-date="isDisabledDate"/>
               </a-form-item>
             </a-col>
 
             <a-col :span="8"> 
               <a-form-item label="Ngày kết thúc" name="ngayKT">
-                <a-date-picker v-model:value="task.ngayKT" style="width: 100%" />
+                <a-date-picker v-model:value="task.ngayKT" style="width: 100%" :disabled-date="isDisabledDate"/>
               </a-form-item>
             </a-col>
 
@@ -76,22 +76,49 @@ const danhSachNgayNghi = ref([]);
 
 const loadNgayNghi = async () => {
   const res = await CalendarService.getAllCalendars();
-  danhSachNgayNghi.value = res.map(item => item.ngay);
+  const daysOff: string[] = [];
+
+  res.forEach(item => {
+    let start = dayjs(item.ngayBD);
+    const end = dayjs(item.ngayKT);
+
+    while (start.isSameOrBefore(end)) {
+      daysOff.push(start.format("YYYY-MM-DD"));
+      start = start.add(1, "day");
+    }
+  });
+
+  danhSachNgayNghi.value = daysOff;
 };
 
 onMounted(loadNgayNghi);
 
 const formatDate = (date) => dayjs(date).format("YYYY-MM-DD");
-const isNgayLamViec = (date) => !danhSachNgayNghi.value.includes(formatDate(date));
+
+const isNgayLamViec = (date: Dayjs) => {
+  const isWeekend = date.day() === 0 || date.day() === 6;
+  const isHoliday = danhSachNgayNghi.value.includes(formatDate(date));
+  return !isWeekend && !isHoliday;
+};
+
+const isDisabledDate = (current: Dayjs) => {
+  return !isNgayLamViec(current);
+};
 
 const tinhNgayKT = () => {
   if (!task.soNgay || !task.ngayBD) return;
+
   let current = dayjs(task.ngayBD);
   let count = 0;
-  while (count < task.soNgay - 1) {
+
+  while (count < task.soNgay) {
+    if (isNgayLamViec(current)) {
+      count++;
+      if (count === task.soNgay) break;
+    }
     current = current.add(1, "day");
-    if (isNgayLamViec(current)) count++;
   }
+
   task.ngayKT = current;
 };
 

@@ -60,6 +60,12 @@ const routes = [
     name: "file",
     component: () => import("@/views/File.vue"),
   },
+
+  {
+    path: "/PJfile",
+    name: "PJfile",
+    component: () => import("@/views/ProjectFile.vue"),
+  },
 ];
 
 const router = createRouter ({
