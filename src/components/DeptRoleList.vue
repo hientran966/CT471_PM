@@ -1,12 +1,12 @@
 <template>
     <div class="all-account-container">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h1>Danh sách phòng ban</h1>
-        <a-button type="primary" @click="departmentForm?.showModal()">+</a-button>
+        <h1>Danh sách loại phòng ban</h1>
+        <a-button type="primary" @click="deptRoleForm?.showModal()">+</a-button>
       </div>
       <InputSearch v-model="searchText" />
       <Table
-        ref="departmentTable"
+        ref="deptRoleTable"
         :columns="columns"
         :queryData="queryData"
         :searchText="searchText"
@@ -22,53 +22,40 @@
         </a-space>
       </Table>
     </div>
-    <DepartmentForm ref="departmentForm" @saved="handleCreated" />
+    <DeptRoleForm ref="deptRoleForm" @saved="handleCreated" />
 </template>
 
 <script setup>
 import InputSearch from "@/components/InputSearch.vue";
 import Table from "@/components/Table.vue";
-import DepartmentForm from "@/components/DepartmentForm.vue";
-import DepartmentService from "@/services/PhongBan.service";
+import DeptRoleForm from "@/components/DeptRoleForm.vue";
 import DeptRoleService from "@/services/LoaiPhongBan.service";
 import { ref } from "vue";
 import { StopOutlined, EditOutlined } from "@ant-design/icons-vue";
 
 const searchText = ref("");
-const departmentForm = ref(null);
-const departmentTable = ref(null);
-const loaiPhongMap = ref({});
+const deptRoleForm = ref(null);
+const deptRoleTable = ref(null);
 
 const columns = [
-  { title: "Tên phòng ban", dataIndex: "tenPhong", sorter: true, width: "125px" },
+  { title: "Loại phòng ban", dataIndex: "loaiPhongBan", sorter: true, width: "125px" },
   {
-    title: "Loại phòng ban",
-    dataIndex: "loaiPhongBan",
-    width: "150px",
-    customRender: ({ text }) => loaiPhongMap.value[text] || text,
+    title: "Phân quyền",
+    dataIndex: "phanQuyen",
+    width: "105px",
   },
   { title: "Hành động", dataIndex: "account", width: "100px"},
 ];
 
-const loadLoaiPhong = async () => {
-  try {
-    const list = await DeptRoleService.getAllDeptRoles();
-    loaiPhongMap.value = Object.fromEntries(list.map(loai => [loai.id, loai.loaiPhongBan]));
-  } catch (e) {
-    console.error("Không thể tải loại phòng ban", e);
-  }
-};
-loadLoaiPhong();
-
 const queryData = async (params) => {
   try {
-    let res = await DepartmentService.getAllDepartments();
+    let res = await DeptRoleService.getAllDeptRoles();
 
     if (params?.searchText && params.searchText.trim() !== "") {
       const keyword = params.searchText.trim().toLowerCase();
       res = res.filter(acc =>
         acc.tenPhong?.toLowerCase().includes(keyword) ||
-        acc.loaiPhongBan?.toLowerCase().includes(keyword)
+        acc.phanQuyen?.toLowerCase().includes(keyword)
       );
     }
 
@@ -93,26 +80,26 @@ const queryData = async (params) => {
 };
 
 const handleCreated = () => {
-  departmentTable.value?.reload?.();
+  deptRoleTable.value?.reload?.();
 };
 
 function handleEdit(record) {
-  if (departmentForm.value?.showModal) {
-    departmentForm.value.showModal(record.id);
+  if (deptRoleForm.value?.showModal) {
+    deptRoleForm.value.showModal(record.id);
   }
 }
 
 async function handleDeactivate(record) {
   try {
-    const confirmed = await window.confirm(`Xác nhận vô hiệu hóa phòng ban ${record.tenPhong}?`);
+    const confirmed = await window.confirm(`Xác nhận vô hiệu hóa vai trò ${record.tenPhong}?`);
     if (!confirmed) return;
 
-    await DepartmentService.deleteDepartment(record.id);
-    message.success("Đã vô hiệu hóa phòng ban");
-    departmentTable.value?.reload?.();
+    await RoleService.deleteRole(record.id);
+    message.success("Đã vô hiệu hóa vai trò");
+    deptRoleTable.value?.reload?.();
   } catch (err) {
     console.error(err);
-    message.error("Lỗi khi vô hiệu hóa phòng ban");
+    message.error("Lỗi khi vô hiệu hóa vai trò");
   }
 }
 

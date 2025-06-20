@@ -1,7 +1,8 @@
 <template>
   <div>
-    <a-modal v-model:open="open" title="Lịch Sử Chuyển Giao và Báo Cáo" @ok="handleOk">
+    <a-modal v-model:open="open" title="Lịch Sử Chuyển Giao và Báo Cáo" @ok="handleOk" :bodyStyle="{ maxHeight: '60vh', overflowY: 'auto' }">
       <template v-if="timelineItems.length">
+        <br>
         <a-timeline>
           <a-timeline-item v-for="(item, idx) in timelineItems" :key="idx">
             <div v-if="item.type === 'transfer'">
@@ -74,9 +75,8 @@ const handleOk = () => {
 const loadTimeline = async () => {
   if (!props.transfers || props.transfers.length === 0) return;
 
-  const reports = await AssignService.getReport(props.assign);
-
   const items = [];
+  const assignIds = props.transfers.map(t => t.id);
 
   // Chuyển giao
   for (const item of props.transfers) {
@@ -93,32 +93,34 @@ const loadTimeline = async () => {
     });
   }
 
-  // Báo cáo
-  for (const rpt of reports) {
-    let fileName = null;
+  // Báo cáo từ tất cả phân công
+  for (const assignId of assignIds) {
+    const reports = await AssignService.getReport(assignId);
+    for (const rpt of reports) {
+      let fileName = null;
 
-    if (rpt.idDinhKem) {
-      try {
-        const fileInfo = await FileService.getFileById(rpt.idDinhKem);
-        fileName = fileInfo?.tenFile || null;
-      } catch (e) {
-        console.warn(`Không lấy được tên file cho id ${rpt.idDinhKem}`, e);
+      if (rpt.idDinhKem) {
+        try {
+          const fileInfo = await FileService.getFileById(rpt.idDinhKem);
+          fileName = fileInfo?.tenFile || null;
+        } catch (e) {
+          console.warn(`Không lấy được tên file cho id ${rpt.idDinhKem}`, e);
+        }
       }
+
+      items.push({
+        type: 'report',
+        time: rpt.ngayCapNhat,
+        content: {
+          moTa: rpt.moTa,
+          tienDoCaNhan: rpt.tienDoCaNhan,
+          idDinhKem: rpt.idDinhKem,
+          fileName: fileName
+        }
+      });
     }
-
-    items.push({
-      type: 'report',
-      time: rpt.ngayCapNhat,
-      content: {
-        moTa: rpt.moTa,
-        tienDoCaNhan: rpt.tienDoCaNhan,
-        idDinhKem: rpt.idDinhKem,
-        fileName: fileName
-      }
-    });
   }
 
-  // Sắp xếp theo thời gian giảm dần
   timelineItems.value = items
     .filter(i => i.time)
     .sort((a, b) => dayjs(b.time).unix() - dayjs(a.time).unix());

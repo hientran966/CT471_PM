@@ -97,9 +97,10 @@ watch(() => getTaskId(), loadData, { immediate: true });
 
 <style scoped>
 .all-task-scroll {
-  width: 1100px;
+  flex: 1;
+  min-width: 600px;
   height: 100vh;
   overflow-y: auto;
-  background-attachment: scroll;
+  padding: 20px;
 }
 </style>

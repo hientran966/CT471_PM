@@ -83,7 +83,6 @@ import TransferForm from "@/components/TransferForm.vue";
 import AssignForm from "@/components/AssignForm.vue";
 import dayjs from "dayjs";
 import { message } from "ant-design-vue";
-import { c } from "vite/dist/node/moduleRunnerTransport.d-DJ_mE5sf";
 
 const props = defineProps<{
   assign: {
@@ -224,16 +223,14 @@ onMounted(async () => {
       )
     ).filter(Boolean);
 
-    // Lấy thông tin người nhận cho avatar group (nếu cần)
+    // Lấy thông tin người nhận cho avatar group
     const users = allAssignments.value.map(a => ({
       name: a.nguoiNhan?.tenNV || "Không rõ",
       avatar: a.nguoiNhan?.id
         ? `/api/auth/avatar/${a.nguoiNhan.id}`
         : undefined
     }));
-    participants.value = users.filter(
-      (v, i, a) => a.findIndex(t => t.avatar === v.avatar) === i
-    );
+    participants.value = users;
   } catch (err) {
     participants.value = [];
     allAssignments.value = [];

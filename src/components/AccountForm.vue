@@ -34,10 +34,20 @@
             </a-form-item>
 
             <a-form-item label="Vai trò" name="vaiTro">
-              <a-select v-model:value="user.vaiTro" placeholder="Chọn vai trò" :disabled="!isAdmin">
-                <a-select-option value="Giám Đốc">Giám Đốc</a-select-option>
-                <a-select-option value="Trưởng Phòng">Trưởng Phòng</a-select-option>
-                <a-select-option value="Nhân Viên">Nhân Viên</a-select-option>
+              <a-select
+                v-model:value="user.vaiTro"
+                placeholder="Chọn vai trò"
+                :disabled="!isAdmin"
+                :loading="roles.length === 0"
+                allow-clear
+              >
+                <a-select-option
+                  v-for="role in roles"
+                  :key="role.id"
+                  :value="role.id"
+                >
+                  {{ role.tenVaiTro }}
+                </a-select-option>
               </a-select>
             </a-form-item>
           </a-col>
@@ -99,6 +109,7 @@ import { message } from "ant-design-vue";
 
 import AccountService from "@/services/TaiKhoan.service";
 import DepartmentService from "@/services/PhongBan.service";
+import RoleService from "@/services/VaiTro.service";
 
 const emit = defineEmits(["created"]);
 
@@ -120,6 +131,7 @@ const isEditMode = ref(false);
 const editUserId = ref(null);
 
 const departments = ref<{ id: string; tenPhong: string }[]>([]);
+const roles = ref<{ id: string; tenVaiTro: string }[]>([]);
 const deptLoading = ref(false);
 
 const userData = JSON.parse(localStorage.getItem("user") || "{}");
@@ -199,8 +211,18 @@ const fetchDepartments = async () => {
     deptLoading.value = false;
   }
 };
+const fetchRoles = async () => {
+  try {
+    roles.value = await RoleService.getAllRoles();
+  } catch (err) {
+    message.error("Không tải được vai trò");
+  }
+};
 
-onMounted(fetchDepartments);
+onMounted(() => {
+  fetchDepartments();
+  fetchRoles();
+});
 
 defineExpose({ showModal });
 </script>

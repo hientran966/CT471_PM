@@ -7,13 +7,13 @@
             <a-input v-model:value="department.tenPhong" />
           </a-form-item>
 
-          <a-form-item label="Phân quyền" name="phanQuyen">
-              <a-select v-model:value="department.phanQuyen" placeholder="Chọn phân quyền">
-                <a-select-option value="Cao">Cao</a-select-option>
-                <a-select-option value="Trung">Trung</a-select-option>
-                <a-select-option value="Thấp">Thấp</a-select-option>
-              </a-select>
-            </a-form-item>
+          <a-form-item label="Loại phòng ban" name="loaiPhongBan">
+            <a-select v-model:value="department.loaiPhongBan" placeholder="Chọn loại phòng ban">
+              <a-select-option v-for="loai in loaiPhongList" :key="loai.id" :value="loai.id">
+                {{ loai.loaiPhongBan }}
+              </a-select-option>
+            </a-select>
+          </a-form-item>
         </a-form>
     </a-modal>
   </div>
@@ -24,6 +24,7 @@ import { reactive, ref } from 'vue';
 import type { Rule } from 'ant-design-vue/es/form';
 import { message } from 'ant-design-vue';
 import DepartmentService from "@/services/PhongBan.service";
+import DeptRoleService from "@/services/LoaiPhongBan.service";
 import AuthService from "@/services/TaiKhoan.service"
 
 const emit = defineEmits(['saved']);
@@ -32,26 +33,35 @@ const props = defineProps<{
   department?: {
     id: string,
     tenPhong: string,
-    phanQuyen: string,
+    loaiPhongBan: string,
   },
 }>();
 
 const editDepartmentId = ref<string | null>(null);
+const formRef = ref();
+const loaiPhongList = ref<{ id: string, loaiPhongBan: string }[]>([]);
 
 const department = reactive({
   tenPhong: "",
-  phanQuyen: "",
+  loaiPhongBan: "",
 });
 
-const formRef = ref();
+const loadLoaiPhongBan = async () => {
+  try {
+    loaiPhongList.value = await DeptRoleService.getAllDeptRoles();
+  } catch (err) {
+    message.error("Không thể tải danh sách loại phòng ban");
+  }
+};
+
 
 const rules: Record<string, Rule[]> = {
   tenPhong: [
     { required: true, message: 'Xin nhập tên phòng ban', trigger: 'change' },
     { min: 3, max: 50, message: 'Tên phòng ban từ 3 đến 50 ký tự', trigger: 'blur' },
   ],
-  phanQuyen: [
-    { required: true, message: 'Xin chọn phân quyền', trigger: 'change' },
+  loaiPhongBan: [
+    { required: true, message: 'Xin chọn loại phòng', trigger: 'change' },
   ],
 };
 
@@ -62,18 +72,22 @@ const resetForm = () => {
 const open = ref<boolean>(false);
 
 const showModal = async (departmentId?: string) => {
+  await loadLoaiPhongBan();
+
   if (departmentId) {
     editDepartmentId.value = departmentId;
     try {
       const departmentData = await DepartmentService.getDepartmentById(departmentId);
       department.tenPhong = departmentData.tenPhong;
-      department.phanQuyen = departmentData.phanQuyen;
+      department.loaiPhongBan = departmentData.loaiPhongBan;
     } catch (err) {
       message.error("Không tải được phòng ban để sửa");
       return;
     }
   } else {
     editDepartmentId.value = null;
+    department.tenPhong = "";
+    department.loaiPhongBan = "";
   }
 
   open.value = true;
@@ -86,7 +100,7 @@ const handleOk = async () => {
 
     const payload = {
       tenPhong: department.tenPhong,
-      phanQuyen: department.phanQuyen,
+      loaiPhongBan: department.loaiPhongBan,
     };
 
     if (editDepartmentId.value) {

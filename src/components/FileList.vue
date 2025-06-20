@@ -1,8 +1,13 @@
 <template>
   <div class="all-file-container">
     <a-space direction="vertical" size="30">
-      <h3>Danh sách File</h3>
-      <InputSearch v-model="searchText" />
+      <a-space style="width: 100%; justify-content: space-between;">
+        <h3>Danh sách File</h3>
+      </a-space>
+      <br>
+      <div style="display: flex; justify-content: center;">
+        <InputSearch v-model="searchText" style="width: 800px;" />
+      </div>
       <br>
       <a-row :gutter="[16, 16]" justify="start">
         <a-col
@@ -145,7 +150,7 @@ watch(() => getTaskId(), loadData, { immediate: true });
 
 <style scoped>
 .all-file-container {
-  max-width: 1100px;
+  min-width: 1100px;
   margin: 20px auto 0 auto;
   width: 100%;
   box-sizing: border-box;

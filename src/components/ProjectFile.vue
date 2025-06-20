@@ -1,7 +1,7 @@
 <template>
   <div class="all-file-container">
     <a-space direction="vertical" size="30">
-      <a-space>
+      <a-space style="width: 100%; justify-content: space-between;">
         <h3>Danh sách File</h3>
         <a-button
           type="primary"
@@ -9,7 +9,10 @@
           Tải lên file
         </a-button>
       </a-space>
-      <InputSearch v-model="searchText" />
+      <br>
+      <div style="display: flex; justify-content: center;">
+        <InputSearch v-model="searchText" style="width: 800px;" />
+      </div>
       <br>
       <a-row :gutter="[16, 16]" justify="start">
         <a-col
@@ -163,7 +166,6 @@ watch(() => getProjectId(), loadData, { immediate: true });
 
 <style scoped>
 .all-file-container {
-  max-width: 1100px;
   margin: 20px auto 0 auto;
   width: 100%;
   box-sizing: border-box;

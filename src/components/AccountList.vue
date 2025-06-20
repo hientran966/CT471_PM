@@ -6,7 +6,7 @@
       </div>
       <InputSearch v-model="searchText" />
       <Table
-        ref="projectTable"
+        ref="accountTable"
         :columns="columns"
         :queryData="queryData"
         :searchText="searchText"
@@ -30,12 +30,16 @@ import InputSearch from "@/components/InputSearch.vue";
 import AccountForm from "./AccountForm.vue";
 import Table from "@/components/Table.vue";
 import AuthService from "@/services/TaiKhoan.service";
+import RoleService from "@/services/VaiTro.service";
+import DepartmentService from "@/services/PhongBan.service";
 import { ref } from "vue";
 import { StopOutlined, EditOutlined } from "@ant-design/icons-vue";
 
 const searchText = ref("");
 const accountForm = ref(null);
 const accountTable = ref(null);
+const roleMap = ref({});
+const deptMap = ref({});
 
 const columns = [
   { title: "Tên", dataIndex: "tenNV", sorter: true, width: "125px" },
@@ -54,17 +58,29 @@ const columns = [
   {
     title: "Vai trò",
     dataIndex: "vaiTro",
-    filters: [
-      { text: "Giám đốc", value: "Giám đốc" },
-      { text: "Trưởng Phòng", value: "Trưởng Phòng" },
-      { text: "Nhân Viên", value: "Nhân Viên" },
-      { text: "Admin", value: "Admin" },
-    ],
+    customRender: ({ text }) => roleMap.value[text] || text,
     width: "110px",
   },
-  { title: "Phòng ban", dataIndex: "idPhong", width: "100px", ellipsis: true, },
+  { 
+    title: "Phòng ban",
+    dataIndex: "idPhong",
+    customRender: ({ text }) => deptMap.value[text] || text,
+    width: "150px",
+  },
   { title: "Hành động", dataIndex: "account", width: "100px"},
 ];
+
+const loadMaps = async () => {
+  try {
+    const roles = await RoleService.getAllRoles();
+    const depts = await DepartmentService.getAllDepartments();
+    roleMap.value = Object.fromEntries(roles.map(role => [role.id, role.tenVaiTro]));
+    deptMap.value = Object.fromEntries(depts.map(dept => [dept.id, dept.tenPhong]));
+  } catch (e) {
+    console.error("Không thể tải", e);
+  }
+};
+loadMaps();
 
 const queryData = async (params) => {
   try {
@@ -124,7 +140,7 @@ async function handleDeactivate(record) {
 
     await AuthService.deleteAccount(record.id);
     message.success("Đã vô hiệu hóa tài khoản");
-    projectTable.value?.reload?.();
+    accountTable.value?.reload?.();
   } catch (err) {
     console.error(err);
     message.error("Lỗi khi vô hiệu hóa tài khoản");
