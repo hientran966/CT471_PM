@@ -69,7 +69,7 @@ const handlePreview = (file) => {
   detailRef.value?.showModal();
 };
 
-const handleReview = async ({ idFile, review, idNguoiDang }) => {
+const handleReview = async ({ idFile, review, idNguoiDang, idNguoiNhan }) => {
   if (!review?.trim()) {
     message.warning("Nội dung đánh giá không được để trống!");
     return;
@@ -77,11 +77,12 @@ const handleReview = async ({ idFile, review, idNguoiDang }) => {
 
   try {
     await NotificationService.createNotification({
-      tieuDe: "Đánh giá file",
+      tieuDe: `Đã gửi đánh giá File`,
       noiDung: review.trim(),
       idPhienBan: idFile,
       ngayDang: formatDateTime(new Date()),
       idNguoiDang,
+      idNguoiNhan,
     });
 
     message.success("Đánh giá đã được gửi thành công!");

@@ -48,6 +48,10 @@ class NotificationService {
     async getByVersion(versionId) {
         return (await this.api.get(`/version/${versionId}`)).data;
     }
+
+    async getByReceive(id) {
+        return (await this.api.get(`/receive/${id}`)).data;
+    }
 }
 
 export default new NotificationService();

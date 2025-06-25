@@ -10,32 +10,27 @@
 
           <a-row :gutter="16" style="margin-top: 20px">
             <a-col :span="12">
+              <a-card title="Dự án & Công việc">
+                <a-table
+                  :columns="treeColumns"
+                  :data-source="treeData"
+                  :pagination="false"
+                  :default-expand-all-rows="true"
+                />
+              </a-card>
+            </a-col>
+            <a-col :span="12">
               <a-card title="Thông báo">
                 <a-list
                   :data-source="announcements"
                   bordered
-                  :render-item="(item) => h(AnnouncementItem, { item })"
-                />
-              </a-card>
-            </a-col>
-
-            <a-col :span="12">
-              <a-card title="Dự án của tôi">
-                <a-table
-                  :columns="projectColumns"
-                  :data-source="projects"
-                  size="small"
-                />
-              </a-card>
-            </a-col>
-          </a-row>
-          <a-row :gutter="16" style="margin-top: 20px">
-            <a-col :span="12">
-              <a-card
-                title="Công việc của tôi"
-                style="max-height: 400px; overflow-y: auto"
-              >
-                <a-list :data-source="tasks" bordered :render-item="renderTaskItem" />
+                >
+                  <template #renderItem="{ item }">
+                    <a-list-item>
+                      <AnnouncementItem :item="item" />
+                    </a-list-item>
+                  </template>
+                </a-list>
               </a-card>
             </a-col>
           </a-row>
@@ -48,29 +43,33 @@
 <script setup>
 import { ref, computed, onMounted, h, watch } from "vue";
 import AnnouncementItem from "@/components/AnnouncementItem.vue";
-import TaskItem from "@/components/TaskItem.vue";
 import AuthService from "@/services/TaiKhoan.service";
 import ProjectService from "@/services/DuAn.service";
 import TaskService from "@/services/CongViec.service";
-import AssignService from "@/services/PhanCong.service"
+import AssignService from "@/services/PhanCong.service";
+import NotificationService from "@/services/ThongBao.service";
 import dayjs from "dayjs";
 
 function formatDate(dateString) {
   return dayjs(dateString).format("DD/MM/YYYY");
 }
 
+const getNotificationType = (item) => {
+  if (item.idPhienBan) return "Đánh giá file";
+  if (item.idPhanCong) return "Báo cáo phân công";
+  if (item.idCongViec) return "Thông báo công việc";
+  if (item.idDuAn) return "Thông báo dự án";
+  return "Thông báo chung";
+};
+
 const announcements = ref([]);
 
 const user = ref({ id: "" });
-const tasks = ref([]);
+const treeData = ref([]);
 
 const avatar = computed(() =>
   user.value.id ? `/api/auth/avatar/${user.value.id}` : undefined
 );
-
-const projects = ref([]);
-
-const renderTaskItem = ({ item }) => h(TaskItem, { item });
 
 onMounted(async () => {
   try {
@@ -78,48 +77,61 @@ onMounted(async () => {
     Object.assign(user.value, data);
 
     if (user.value.id) {
-      projects.value = await ProjectService.getProjectsByAccountId(
-        user.value.id
-      );
-      const rawTasks = await TaskService.getTasksByAccount(user.value.id);
+      const [projectsRaw, tasksRaw] = await Promise.all([
+        ProjectService.getProjectsByAccountId(user.value.id),
+        TaskService.getTasksByAccount(user.value.id),
+      ]);
+
+      announcements.value = await NotificationService.getByReceive(user.value.id);
+
+      console.log("announcements", announcements.value);
 
       const tasksWithProgress = await Promise.all(
-        rawTasks.map(async (task) => {
+        tasksRaw.map(async (task) => {
           const assignments = await AssignService.getAssignmentsByTask(task.id);
-
           const totalWeight = assignments.reduce((sum, a) => sum + (a.doQuanTrong || 0), 0);
-
           const totalProgress = assignments.reduce(
             (sum, a) => sum + ((a.tienDoCaNhan || 0) * (a.doQuanTrong || 0)),
             0
           );
-
-          const tienDo =
-            totalWeight > 0 ? Math.round(totalProgress / totalWeight) : 0;
+          const tienDo = totalWeight > 0 ? Math.round(totalProgress / totalWeight) : 0;
           return { ...task, tienDo };
         })
       );
-      tasks.value = tasksWithProgress;
+
+      const groupedData = projectsRaw.map((project) => {
+        const children = tasksWithProgress
+          .filter((task) => task.idDuAn === project.id)
+          .map((task) => ({
+            key: `task-${task.id}`,
+            ten: task.tenCV,
+            ngayBD: formatDate(task.ngayBD),
+            ngayKT: formatDate(task.ngayKT),
+            trangThai: task.trangThai,
+          }));
+
+        return {
+          key: `project-${project.id}`,
+          ten: project.tenDA,
+          ngayBD: formatDate(project.ngayBD),
+          ngayKT: formatDate(project.ngayKT),
+          trangThai: project.trangThai,
+          children,
+        };
+      });
+
+      treeData.value = groupedData;
     }
   } catch (err) {
-    console.error("Không lấy được thông tin tài khoản hoặc dự án:", err);
+    console.error("Không lấy được thông tin:", err);
   }
 });
 
-const projectColumns = [
-  { title: "Tên dự án", dataIndex: "tenDA", key: "tenDA" },
-  {
-    title: "Bắt đầu",
-    dataIndex: "ngayBD",
-    key: "ngayBD",
-    customRender: ({ text }) => formatDate(text),
-  },
-  {
-    title: "Kết thúc",
-    dataIndex: "ngayKT",
-    key: "ngayKT",
-    customRender: ({ text }) => formatDate(text),
-  },
+const treeColumns = [
+  { title: "Tên", dataIndex: "ten", key: "ten" },
+  { title: "Bắt đầu", dataIndex: "ngayBD", key: "ngayBD" },
+  { title: "Kết thúc", dataIndex: "ngayKT", key: "ngayKT" },
+  { title: "Trạng thái", dataIndex: "trangThai", key: "trangThai" },
 ];
 </script>
 

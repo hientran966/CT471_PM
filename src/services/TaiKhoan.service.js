@@ -56,6 +56,14 @@ class AuthService {
     async getAssignNumber(id) {
         return (await this.api.get(`/${id}/assign`)).data;
     }
+
+    async getRole(id) {
+        return (await this.api.get(`/${id}/role`)).data;
+    }
+
+    async getUserDepartment(id) {
+        return (await this.api.get(`/${id}/department`)).data;
+    }
 }
 
 export default new AuthService();

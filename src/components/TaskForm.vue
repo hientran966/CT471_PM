@@ -44,6 +44,7 @@ import { message } from 'ant-design-vue';
 import CalendarService from '@/services/LichNghi.service';
 import TaskService from "@/services/CongViec.service";
 import AuthService from "@/services/TaiKhoan.service"
+import ProjectService from "@/services/DuAn.service"
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 
 dayjs.extend(isSameOrBefore);
@@ -62,6 +63,7 @@ const props = defineProps<{
 }>();
 
 const editTaskId = ref<string | null>(null);
+const project = ref();
 
 //Xử lý ngày nghỉ
 const task = reactive({
@@ -158,21 +160,43 @@ const rules: Record<string, Rule[]> = {
     { min: 3, max: 50, message: 'Tên công việc từ 3 đến 50 ký tự', trigger: 'blur' },
   ],
   ngayBD: [
-    { required: true, message: 'Xin chọn ngày bắt đầu', trigger: 'change', type: 'object' }
+    { required: true, message: 'Xin chọn ngày bắt đầu', trigger: 'change', type: 'object' },
+    {
+      validator: async (_rule: Rule, value: Dayjs) => {
+        if (!value || !project.value) return Promise.resolve();
+        if (value.isBefore(project.value.ngayBD)) {
+          return Promise.reject('Ngày bắt đầu không được trước ngày bắt đầu của dự án');
+        }
+        if (value.isAfter(project.value.ngayKT)) {
+          return Promise.reject('Ngày bắt đầu không được sau ngày kết thúc của dự án');
+        }
+        return Promise.resolve();
+      },
+      trigger: 'change'
+    }
   ],
+
   ngayKT: [
     { required: true, message: 'Xin chọn ngày kết thúc', trigger: 'change', type: 'object' },
     {
       validator: async (_rule: Rule, value: Dayjs) => {
-        if (!value) return Promise.resolve();
-        if (task.ngayBD && value.isBefore(task.ngayBD)) {
-          return Promise.reject('Ngày kết thúc không được trước ngày bắt đầu!');
+        if (!value || !task.ngayBD || !project.value) return Promise.resolve();
+
+        if (value.isBefore(task.ngayBD)) {
+          return Promise.reject('Ngày kết thúc không được trước ngày bắt đầu công việc!');
         }
+        if (value.isAfter(project.value.ngayKT)) {
+          return Promise.reject('Ngày kết thúc không được sau ngày kết thúc của dự án!');
+        }
+        if (value.isBefore(project.value.ngayBD)) {
+          return Promise.reject('Ngày kết thúc không được trước ngày bắt đầu của dự án!');
+        }
+
         return Promise.resolve();
       },
-      trigger: 'change',
-    },
-  ],
+      trigger: 'change'
+    }
+  ]
 };
 
 const resetForm = () => {
@@ -182,6 +206,10 @@ const resetForm = () => {
 const open = ref<boolean>(false);
 
 const showModal = async (taskId?: string) => {
+  project.value = await ProjectService.getProjectById(props.projectId);
+  project.value.ngayBD = dayjs(project.value.ngayBD);
+  project.value.ngayKT = dayjs(project.value.ngayKT);
+
   if (taskId) {
     editTaskId.value = taskId;
     try {

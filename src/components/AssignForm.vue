@@ -18,11 +18,29 @@
           <a-input v-model:value="assign.moTa" />
         </a-form-item>
 
+        <a-form-item label="Phòng ban" name="idPhong">
+          <a-select
+            v-model:value="selectedDept"
+            placeholder="Chọn phòng ban"
+            @change="fetchAccountsByDept"
+            allow-clear
+            :loading="deptLoading"
+          >
+            <a-select-option
+              v-for="dept in departments"
+              :key="dept.id"
+              :value="dept.id"
+            >
+              {{ dept.tenPhong }}
+            </a-select-option>
+          </a-select>
+        </a-form-item>
+
         <a-form-item label="Nhân viên đảm nhận" name="idNguoiNhan">
           <a-select
             :mode="isEditMode ? undefined : 'multiple'"
             v-model:value="assign.idNguoiNhan"
-            placeholder="Chọn phòng ban"
+            placeholder="Chọn nhân viên"
             :loading="deptLoading"
             allow-clear
           >
@@ -34,7 +52,7 @@
               <span style="display: flex; justify-content: space-between; align-items: center">
                 <span>{{ dept.tenNV }}</span>
                 <a-tag :color="getTagColor(dept.assignCount)">
-                  {{ dept.assignCount }} phân công đang thực hiện
+                  {{ dept.assignCount }} công việc đang thực hiện
                 </a-tag>
               </span>
             </a-select-option>
@@ -65,6 +83,7 @@ import { reactive, ref, toRaw, onMounted, watch } from "vue";
 import type { Rule } from "ant-design-vue/es/form";
 import { message } from "ant-design-vue";
 import AssignService from "@/services/PhanCong.service";
+import DepartmentService from "@/services/PhongBan.service";
 import AuthService from "@/services/TaiKhoan.service";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 
@@ -85,6 +104,8 @@ const accounts = ref<{
 const deptLoading = ref(false);
 const open = ref<boolean>(false);
 const isEditMode = ref(false);
+const departments = ref<{ id: string; tenPhong: string }[]>([]);
+const selectedDept = ref<string | null>(null);
 
 const assign = reactive({
   moTa: "",
@@ -97,6 +118,23 @@ function getTagColor(count: number) {
   if (count <= 5) return "gold";
   return "red";
 }
+
+const fetchDepartmentsList = async () => {
+  deptLoading.value = true;
+  try {
+    const currentUser = await AuthService.getCurrentUser();
+    const userDepts = await AuthService.getUserDepartment(currentUser.id);
+    const allDepartments = await DepartmentService.getAllDepartments();
+    const maxPermission = Math.max(...userDepts.map((d: any) => d.phanQuyen));
+
+    departments.value = allDepartments.filter(
+      (dept: any) => dept.phanQuyen <= maxPermission
+    );
+    console.log("Departments fetched:", departments.value);
+  } finally {
+    deptLoading.value = false;
+  }
+};
 
 const rules: Record<string, Rule[]> = {
   moTa: [
@@ -170,12 +208,10 @@ const handleOk = async () => {
   }
 };
 
-const fetchDepartments = async () => {
+const fetchAccountsByDept = async (deptId: string) => {
   deptLoading.value = true;
-  const currentUser = await AuthService.getCurrentUser();
   try {
-    const rawAccounts = await AuthService.getDepartmentAccounts(currentUser.id);
-
+    const rawAccounts = await AuthService.getDepartmentAccounts(deptId);
     const results = await Promise.all(
       rawAccounts.map(async (acc: any) => {
         const res = await AuthService.getAssignNumber(acc.id);
@@ -185,14 +221,15 @@ const fetchDepartments = async () => {
         };
       })
     );
-
     accounts.value = results.sort((a, b) => b.assignCount - a.assignCount);
   } finally {
     deptLoading.value = false;
   }
 };
 
-onMounted(fetchDepartments);
+onMounted(() => {
+  fetchDepartmentsList();
+});
 
 defineExpose({ showModal });
 </script>

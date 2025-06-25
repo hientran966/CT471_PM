@@ -219,6 +219,7 @@ const submitReview = () => {
       idFile: selected.id,
       review: reviewText.value,
       idNguoiDang: user.value.id,
+      idNguoiNhan: props.file.idNguoiTao
     });
   }
   open.value = false;

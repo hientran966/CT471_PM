@@ -16,7 +16,6 @@
         @finish="handleOk"
       >
         <a-row :gutter="16">
-          <!-- Cột trái -->
           <a-col :span="12">
             <a-form-item label="Họ và tên" name="tenNV">
               <a-input v-model:value="user.tenNV" />
@@ -26,7 +25,7 @@
               <a-input v-model:value="user.email" :disabled="!isAdmin"/>
             </a-form-item>
 
-            <a-form-item v-if="!isEditMode || isAdmin" label="Mật khẩu" name="Password">
+            <a-form-item v-if="!isEditMode || isAdmin" label="Mật khẩu" name="Password" :rules="passwordRules">
               <a-input-password
                 v-model:value="user.Password"
                 autocomplete="new-password"
@@ -52,7 +51,6 @@
             </a-form-item>
           </a-col>
 
-          <!-- Cột phải -->
           <a-col :span="12">
             <a-form-item label="Giới tính" name="gioiTinh">
               <a-radio-group v-model:value="user.gioiTinh" :disabled="!isAdmin">
@@ -150,10 +148,14 @@ const rules: Record<string, Rule[]> = {
     { pattern: /^[0-9]{9,11}$/, message: "SĐT 9–11 chữ số", trigger: "blur" },
   ],
   idPhong: [{ required: true, message: "Chọn phòng ban", trigger: "change" }],
-  Password: isEditMode.value
-  ? []
-  : [{ required: true, message: "Nhập mật khẩu", trigger: "blur" }],
 };
+
+const passwordRules = computed(() =>
+  isEditMode.value
+    ? []
+    : [{ required: true, message: "Nhập mật khẩu", trigger: "blur" }]
+);
+
 
 const showModal = (record?: any) => {
   if (record) {
@@ -177,7 +179,6 @@ const showModal = (record?: any) => {
   }
   open.value = true;
 };
-
 
 const handleOk = async () => {
   try {

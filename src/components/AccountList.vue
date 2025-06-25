@@ -85,6 +85,7 @@ loadMaps();
 const queryData = async (params) => {
   try {
     let res = await AuthService.getAllAccounts();
+    console.log(res);
 
     if (params?.searchText && params.searchText.trim() !== "") {
       const keyword = params.searchText.trim().toLowerCase();

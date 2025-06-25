@@ -115,7 +115,13 @@ const loadData = async () => {
           return user?.tenNV || "";
         }));
 
-        const tienDo = task.tienDo || 0;
+        const totalWeight = assignments.reduce((sum, a) => sum + (a.doQuanTrong || 1), 0);
+        console.log(totalWeight);
+        const tienDo = totalWeight === 0
+          ? 0
+          : Math.round(
+              assignments.reduce((sum, a) => sum + ((a.tienDoCaNhan || 0) * (a.doQuanTrong || 1)), 0) / totalWeight
+            );
         return { ...task, tienDo, thamGia: participantNames.join(", ") };
       })
     );
