@@ -2,32 +2,23 @@
   <div style="margin-top: 20px; width: 100%;">
     <a-space direction="vertical" size="30" style="width: 100%;">
       <TaskFilter @filter="handleFilter" />
-      <a-row :gutter="[16, 16]" style="margin-bottom: 20px; margin-top: 20px;">
-        <a-col :span="12">
-          <h1>Danh sách công việc</h1>
-        </a-col>
-        <a-col :span="12" style="text-align: right;">
-          <a-button type="primary" @click="taskForm.showModal()">Thêm công việc</a-button>
-        </a-col>
-      </a-row>
+      <br>
       <a-row :gutter="[16, 16]">
         <a-col
           v-for="task in filteredTasks"
           :key="task.id"
-          :span="8"
+          :span="6"
         >
           <TaskCard :task="task" :projectId="projectId" @saved="loadData"/>
         </a-col>
       </a-row>
     </a-space>
-    <TaskForm ref="taskForm" :projectId="projectId" @saved="loadData" />
   </div>
 </template>
 
 <script setup>
 import TaskFilter from "@/components/TaskFilter.vue";
 import TaskCard from "@/components/TaskCard.vue";
-import TaskForm from "@/components/TaskForm.vue";
 import TaskService from "@/services/CongViec.service";
 import AssignService from "@/services/PhanCong.service";
 import AccountService from "@/services/TaiKhoan.service";
@@ -39,7 +30,6 @@ dayjs.extend(isBetween);
 
 const props = defineProps(['projectId']);
 
-const taskForm = ref(null);
 const searchFilters = ref({
   deadline: null,
   status: null,
@@ -133,4 +123,6 @@ const loadData = async () => {
 };
 
 watch(() => props.projectId, loadData, { immediate: true });
+
+defineExpose({ loadData });
 </script>

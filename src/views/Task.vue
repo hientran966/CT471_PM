@@ -1,6 +1,6 @@
 <template>
   <div class="row" style="max-height: 100vh;">
-    <div class="col-4" style="background-attachment: fixed;">
+    <div class="col-2" style="background-attachment: fixed;">
       <Menu 
         :items="items"
         :selectedKeys="[activeKey]"
@@ -8,9 +8,21 @@
         style="max-height: 100%;"
       />
     </div>
-    <div class="col-8  all-task-scroll">
-      <TaskList :projectId="projectId"/>
-    </div>  
+    <div class="col-1"/>
+    <div class="col-9 all-task-scroll">
+      <a-page-header title="Danh sách công việc" :sub-title="currentProject?.tenDA || 'Chưa chọn dự án'" @back="() => $router.go(-1)">
+        <template #tags>
+          <a-tag :color="getStatusColor(currentProject?.trangThai)">
+            {{ currentProject?.trangThai || 'Không xác định' }}
+          </a-tag>
+        </template>
+        <template #extra>
+          <a-button type="primary" @click="taskForm.showModal()">Thêm công việc</a-button>
+        </template>
+      </a-page-header>
+      <TaskList :projectId="projectId" ref="taskList" />
+    </div>
+    <TaskForm ref="taskForm" :projectId="projectId" @saved="handleCreate" />
   </div>
 </template>
 
@@ -19,6 +31,7 @@ import { useRoute, useRouter } from "vue-router";
 import { ref, h, onMounted, computed } from "vue";
 import ProjectService from "@/services/DuAn.service"
 import TaskList from '@/components/TaskList.vue';
+import TaskForm from "@/components/TaskForm.vue";
 import Menu from '@/components/Menu.vue';
 
 const route = useRoute();
@@ -26,6 +39,9 @@ const router = useRouter();
 const taskId = ref("");
 const projectId = computed(() => String(route.query.projectId || ""));
 const items = ref([]);
+const taskForm = ref(null);
+const taskList = ref(null);
+const currentProject = ref();
 
 function getItem(label, key, icon, children, type) {
   return {
@@ -37,19 +53,31 @@ function getItem(label, key, icon, children, type) {
   };
 }
 
+function getStatusColor(status) {
+  switch (status) {
+    case "Đã hoàn thành":
+      return "green";
+    case "Đang tiến hành":
+      return "blue";
+    case "Chưa bắt đầu":
+      return "default";
+    default:
+      return "default";
+  }
+}
+
+
 const activeKey = ref("task");
 
 onMounted(async () => {
   taskId.value = route.query.taskId || "";
   const projects = await ProjectService.getAllProjects();
+  currentProject.value = projects.find(p => String(p.id) === projectId.value);
+  console.log(currentProject);
   items.value = [
     getItem(
-      h('b', projectId.value && projects.find(p => String(p.id) === projectId.value)
-        ? projects.find(p => String(p.id) === projectId.value).tenDA
-        : "Chọn dự án"
-      ),
-      "projectName",
-      null
+      h('b', currentProject.value ? currentProject.value.tenDA : "Chọn dự án"),
+      "projectName"
     ),
     getItem(
       "Danh sách công việc",
@@ -65,6 +93,11 @@ onMounted(async () => {
     ),
   ];
 });
+
+function handleCreate() {
+  taskList.value?.loadData?.();
+}
+
 function onMenuClick({ key }) {
   if (key === "task") {
     router.push({ name: "task", query: { projectId: projectId.value } });
