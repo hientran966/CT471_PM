@@ -15,14 +15,16 @@
         :breadcrumb="{ routes, itemRender }"
       >
         <template #extra>
-          <a-space>
+          <a-space size="middle">
             <a-button
               type="primary"
               @click="$router.push({ name: 'file', query: { taskId: taskId, projectId: projectId } })"
             >
               Xem tất cả file
             </a-button>
-            <a-button type="primary" @click="transferList?.showModal()">Yêu cầu chuyển giao</a-button>
+            <a-badge :count="pendingTransfersCount" offset="[3, 3]">
+              <a-button type="primary" @click="transferList?.showModal()">Yêu cầu chuyển giao</a-button>
+            </a-badge>
             <a-button v-if="isCreator" type="primary" @click="assignForm?.showModal()">Phân công mới</a-button>
           </a-space>
         </template>
@@ -43,6 +45,7 @@ import AssignList from '@/components/AssignList.vue';
 import TransferList from '@/components/TransferList.vue';
 import AssignForm from '@/components/AssignForm.vue';
 import AuthService from "@/services/TaiKhoan.service";
+import AssignService from "@/services/PhanCong.service";
 import Menu from '@/components/Menu.vue';
 
 const route = useRoute();
@@ -55,6 +58,7 @@ const assignForm = ref(null);
 const transferList = ref(null);
 const currentUser = ref(null);
 const taskCreatorId = ref("");
+const pendingTransfersCount = ref(0);
 const isCreator = computed(() => taskCreatorId.value === currentUser.value?.id);
 
 function getItem(label, key, icon, children, type) {
@@ -102,35 +106,36 @@ function itemRender({ route }) {
 
 const activeKey = ref("0");
 
+const loadPendingTransfers = async () => {
+  const user = currentUser.value || await AuthService.getCurrentUser();
+  currentUser.value = user;
+
+  const all = await AssignService.getTransferByUser(user.id);
+  pendingTransfersCount.value = all.filter(t => t.idNguoiNhan === user.id && t.trangThai === "Chưa nhận").length;
+};
+
 onMounted(async () => {
   currentUser.value = await AuthService.getCurrentUser();
   taskId.value = route.query.taskId || "";
   const projects = await ProjectService.getAllProjects();
   currentTask.value = await TaskService.getTaskById(taskId.value);
   taskCreatorId.value = currentTask.value.idNguoiTao;
+  await loadPendingTransfers();
+
   items.value = [
     getItem(
       h('b', projectId.value && projects.find(p => String(p.id) === projectId.value)
         ? projects.find(p => String(p.id) === projectId.value).tenDA
         : "Chọn dự án"
       ),
-      "projectName",
-      null
+      "projectName"
     ),
-    getItem(
-      "Danh sách công việc",
-      "task"
-    ),
-    getItem(
-      "Thông tin dự án",
-      "info"
-    ),
-    getItem(
-      "File",
-      "file" 
-    )
+    getItem("Danh sách công việc", "task"),
+    getItem("Thông tin dự án", "info"),
+    getItem("File", "file")
   ];
 });
+
 function onMenuClick({ key }) {
   if (key === "task") {
     router.push({ name: "task", query: { projectId: projectId.value } });

@@ -1,25 +1,29 @@
 <template>
   <div>
-    <a-modal v-model:open="open" title="Danh Sách Chuyển Giao" @ok="handleOk" :width="1200">
-      <InputSearch v-model="searchText" style="margin-top: 10px;" />
-      
-      <h5 style="margin-top: 20px">Đã gửi</h5>
-      <Table
-        ref="sentTable"
-        :columns="columnsSent"
-        :queryData="queryDataSent"
-        :searchText="searchText"
-        @row-click="onRowClick"
-      />
+    <a-modal v-model:open="open" title="Danh Sách Chuyển Giao" :footer="null" @ok="handleOk" :width="1200">
+      <InputSearch v-model="searchText" style="margin-bottom: 20px;" />
 
-      <h5 style="margin-top: 20px">Đã nhận</h5>
-      <Table
-        ref="receivedTable"
-        :columns="columnsReceived"
-        :queryData="queryDataReceived"
-        :searchText="searchText"
-        @row-click="onRowClick"
-      />
+      <a-tabs v-model:activeKey="activeTab">
+        <a-tab-pane key="sent" tab="Đã gửi">
+          <Table
+            ref="sentTable"
+            :columns="columnsSent"
+            :queryData="queryDataSent"
+            :searchText="searchText"
+            @row-click="onRowClick"
+          />
+        </a-tab-pane>
+
+        <a-tab-pane key="received" tab="Đã nhận">
+          <Table
+            ref="receivedTable"
+            :columns="columnsReceived"
+            :queryData="queryDataReceived"
+            :searchText="searchText"
+            @row-click="onRowClick"
+          />
+        </a-tab-pane>
+      </a-tabs>
     </a-modal>
   </div>
 </template>
@@ -35,92 +39,90 @@ import { useRouter } from "vue-router";
 
 const emit = defineEmits(["updated"]);
 
-const searchText = ref("");
-const router = useRouter();
 const open = ref(false);
-const currentUser = ref(null);
+const searchText = ref("");
+const activeTab = ref("sent");
 
-function onRowClick(record) {
+const router = useRouter();
+const currentUser = ref(null);
+const accountNameMap = ref(new Map());
+
+const getAccountName = async (id) => {
+  if (!id) return "";
+  if (accountNameMap.value.has(id)) return accountNameMap.value.get(id);
+  try {
+    const acc = await AccountService.getAccountById(id);
+    const name = acc?.tenNV || id;
+    accountNameMap.value.set(id, name);
+    return name;
+  } catch {
+    return id;
+  }
+};
+
+const onRowClick = (record) => {
   router.push({ name: "task", query: { projectId: record.id } });
-}
+};
 
 const columnsSent = [
   { title: "ID", dataIndex: "id", sorter: true, width: "10%" },
-  { title: "Mô tả", dataIndex: "moTa", sorter: true, width: "15%" },
+  { title: "Mô tả", dataIndex: "moTa", sorter: true, width: "20%" },
   { title: "Phân công", dataIndex: "idTruoc", sorter: true, width: "15%" },
-  { title: "Người nhận", dataIndex: "idNguoiNhan", sorter: true, width: "15%" },
-  { 
-    title: "Trạng thái", 
-    dataIndex: "trangThai", 
+  { title: "Người nhận", dataIndex: "tenNguoiNhan", sorter: true, width: "20%" },
+  {
+    title: "Trạng thái",
+    dataIndex: "trangThai",
     width: "15%",
-    customRender: ({ record }) => record.trangThai || "Chưa cập nhật"
+    customRender: ({ record }) => record.trangThai || "Chưa cập nhật",
   },
 ];
 
 const columnsReceived = [
   { title: "ID", dataIndex: "id", sorter: true, width: "10%" },
-  { title: "Mô tả", dataIndex: "moTa", sorter: true, width: "15%" },
+  { title: "Mô tả", dataIndex: "moTa", sorter: true, width: "20%" },
   { title: "Phân công", dataIndex: "idTruoc", sorter: true, width: "15%" },
-  { title: "Người gửi", dataIndex: "idNguoiGui", sorter: true, width: "15%" },
-  { 
-    title: "Hành động", 
-    dataIndex: "actions", 
+  { title: "Người gửi", dataIndex: "tenNguoiGui", sorter: true, width: "20%" },
+  {
+    title: "Hành động",
+    dataIndex: "actions",
     width: "20%",
     customRender: ({ record }) => {
-      if (record.trangThai === "Từ chối") {
-        return h("span", { style: "color: red;" }, "Đã từ chối");
-      }
-      if (record.ngayNhan) {
-        return h("span", { style: "color: green;" }, "Đã nhận");
-      }
+      if (record.trangThai === "Từ chối") return h("span", { style: "color: red;" }, "Đã từ chối");
+      if (record.trangThai === "Đã nhận") return h("span", { style: "color: green;" }, "Đã nhận");
       return h("div", [
-        h(
-          "a", 
-          { style: "margin-right: 8px; color: green;", onClick: () => handleAccept(record) }, 
-          "Nhận"
-        ),
-        h(
-          "a", 
-          { style: "color: red;", onClick: () => handleReject(record) }, 
-          "Từ chối"
-        ),
+        h("a", { style: "margin-right: 8px; color: green;", onClick: () => handleAccept(record) }, "Nhận"),
+        h("a", { style: "color: red;", onClick: () => handleReject(record) }, "Từ chối"),
       ]);
-    }
+    },
   },
 ];
 
 const filterAndSort = (data, params) => {
   let res = [...data];
-
-  if (params?.searchText && params.searchText.trim() !== "") {
-    const keyword = params.searchText.trim().toLowerCase();
-    res = res.filter(acc => acc.moTa?.toLowerCase().includes(keyword));
-  }
+  const keyword = params?.searchText?.trim().toLowerCase();
+  if (keyword) res = res.filter(d => d.moTa?.toLowerCase().includes(keyword));
 
   if (params?.sortField && params?.sortOrder) {
     const field = params.sortField;
     const order = params.sortOrder === "ascend" ? 1 : -1;
-    res = res.slice().sort((a, b) => {
-      if (a[field] == null) return 1;
-      if (b[field] == null) return -1;
-      if (typeof a[field] === "string" && typeof b[field] === "string") {
-        return a[field].localeCompare(b[field]) * order;
-      }
-      return (a[field] > b[field] ? 1 : -1) * order;
+    res.sort((a, b) => {
+      const va = a[field] ?? "", vb = b[field] ?? "";
+      return (typeof va === "string" ? va.localeCompare(vb) : va - vb) * order;
     });
   }
-
   return res;
 };
 
 const queryDataSent = async (params) => {
   try {
-    if (!currentUser.value) {
-      currentUser.value = await AccountService.getCurrentUser();
-    }
-
+    if (!currentUser.value) currentUser.value = await AccountService.getCurrentUser();
     const all = await AssignService.getTransferByUser(currentUser.value.id);
     const sent = all.filter(t => t.idNguoiGui === currentUser.value.id);
+
+    for (const t of sent) {
+      t.tenNguoiNhan = await getAccountName(t.idNguoiNhan);
+    }
+
     return filterAndSort(sent, params);
   } catch (err) {
     console.error(err);
@@ -130,12 +132,14 @@ const queryDataSent = async (params) => {
 
 const queryDataReceived = async (params) => {
   try {
-    if (!currentUser.value) {
-      currentUser.value = await AccountService.getCurrentUser();
-    }
-
+    if (!currentUser.value) currentUser.value = await AccountService.getCurrentUser();
     const all = await AssignService.getTransferByUser(currentUser.value.id);
     const received = all.filter(t => t.idNguoiNhan === currentUser.value.id);
+
+    for (const t of received) {
+      t.tenNguoiGui = await getAccountName(t.idNguoiGui);
+    }
+
     return filterAndSort(received, params);
   } catch (err) {
     console.error(err);
@@ -143,19 +147,12 @@ const queryDataReceived = async (params) => {
   }
 };
 
-const ensureCurrentUser = async () => {
-  if (!currentUser.value) {
-    currentUser.value = await AccountService.getCurrentUser();
-  }
-};
-
 const handleAccept = async (record) => {
   try {
-    await ensureCurrentUser();
     await AssignService.completeTransfer(record.id);
     message.success("Đã nhận công việc");
   } catch (err) {
-    console.error("Lỗi khi nhận công việc", err);
+    message.error("Lỗi nhận công việc");
   }
 };
 
@@ -164,14 +161,13 @@ const handleReject = async (record) => {
     await AssignService.rejectTransfer(record.id);
     message.success("Đã từ chối công việc");
   } catch (err) {
-    console.error("Lỗi khi từ chối công việc", err);
+    message.error("Lỗi từ chối công việc");
   }
 };
 
 const showModal = () => {
   open.value = true;
 };
-
 const handleOk = () => {
   open.value = false;
 };

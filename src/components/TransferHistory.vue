@@ -1,6 +1,6 @@
 <template>
   <div>
-    <a-modal v-model:open="open" title="Lịch Sử Chuyển Giao và Báo Cáo" @ok="handleOk" :bodyStyle="{ maxHeight: '60vh', overflowY: 'auto' }">
+    <a-modal v-model:open="open" title="Lịch Sử Chuyển Giao và Báo Cáo" :footer="null" @ok="handleOk" :bodyStyle="{ maxHeight: '60vh', overflowY: 'auto' }">
       <template v-if="timelineItems.length">
         <br>
         <a-timeline>
