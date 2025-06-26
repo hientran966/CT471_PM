@@ -1,15 +1,18 @@
 <template>
-  <div style="margin-top: 20px; width: 100%;">
+  <div class="task-wrapper">
     <a-space direction="vertical" size="30" style="width: 100%;">
       <TaskFilter @filter="handleFilter" />
-      <br>
+      <br />
       <a-row :gutter="[16, 16]">
         <a-col
           v-for="task in filteredTasks"
           :key="task.id"
-          :span="6"
+          :xs="24"
+          :sm="12"
+          :md="8"
+          :lg="6"
         >
-          <TaskCard :task="task" :projectId="projectId" @saved="loadData"/>
+          <TaskCard :task="task" :projectId="projectId" @saved="loadData" />
         </a-col>
       </a-row>
     </a-space>
@@ -37,22 +40,19 @@ const searchFilters = ref({
 });
 
 const tasks = ref([]);
+
 const filteredTasks = computed(() => {
   return tasks.value.filter((task) => {
-    // Deadline
     if (searchFilters.value.deadline) {
       const [start, end] = searchFilters.value.deadline;
       const taskDate = dayjs(task.ngayKT);
-      console.log("Task Date:", taskDate.format("YYYY-MM-DD"));
       if (!taskDate.isBetween(start, end, "day", "[]")) return false;
     }
 
-    // Trạng thái
     const status = computeStatus(task);
     if (searchFilters.value.status && status !== searchFilters.value.status)
       return false;
 
-    // Người tham gia
     if (
       searchFilters.value.participant &&
       !task.thamGia?.toLowerCase().includes(searchFilters.value.participant.toLowerCase())
@@ -72,19 +72,14 @@ const computeStatus = (task) => {
   const ngayBD = task.ngayBD ? dayjs(task.ngayBD) : null;
   const ngayKT = task.ngayKT ? dayjs(task.ngayKT) : null;
 
-  if (task.tienDo >= 100) {
-    return "Đã hoàn thành";
-  }
-  if (ngayKT && ngayKT.isBefore(now, "day")) {
-    return "Quá hạn";
-  }
+  if (task.tienDo >= 100) return "Đã hoàn thành";
+  if (ngayKT && ngayKT.isBefore(now, "day")) return "Quá hạn";
   if (ngayBD && ngayBD.isAfter(now, "day")) {
     const diffDays = ngayBD.diff(now, "day");
     return `Bắt đầu sau ${diffDays + 1} ngày`;
   }
-  if (ngayBD && (ngayBD.isBefore(now, "day") || ngayBD.isSame(now, "day"))) {
+  if (ngayBD && (ngayBD.isBefore(now, "day") || ngayBD.isSame(now, "day")))
     return "Đang tiến hành";
-  }
   return "Chưa cập nhật";
 };
 
@@ -93,6 +88,7 @@ const loadData = async () => {
     tasks.value = [];
     return;
   }
+
   try {
     const rawTasks = await TaskService.getTasksByProject(props.projectId);
 
@@ -106,15 +102,16 @@ const loadData = async () => {
         }));
 
         const totalWeight = assignments.reduce((sum, a) => sum + (a.doQuanTrong || 1), 0);
-        console.log(totalWeight);
         const tienDo = totalWeight === 0
           ? 0
           : Math.round(
               assignments.reduce((sum, a) => sum + ((a.tienDoCaNhan || 0) * (a.doQuanTrong || 1)), 0) / totalWeight
             );
+
         return { ...task, tienDo, thamGia: participantNames.join(", ") };
       })
     );
+
     tasks.value = tasksWithProgress;
   } catch (error) {
     console.error("Error loading data:", error);
@@ -126,3 +123,13 @@ watch(() => props.projectId, loadData, { immediate: true });
 
 defineExpose({ loadData });
 </script>
+
+<style scoped>
+.task-wrapper {
+  margin-top: 20px;
+  padding: 0 16px;
+  flex: 1 1 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+</style>

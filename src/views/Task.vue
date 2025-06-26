@@ -23,7 +23,7 @@
           <a-button type="primary" @click="taskForm.showModal()">Thêm công việc</a-button>
         </template>
       </a-page-header>
-      <TaskList :projectId="projectId" ref="taskList" />
+      <TaskList :projectId="projectId" ref="taskList" class="task-list" />
     </div>
     <TaskForm ref="taskForm" :projectId="projectId" @saved="handleCreate" />
   </div>
@@ -147,5 +147,8 @@ function onMenuClick({ key }) {
   height: 100vh;
   overflow-y: auto;
   background-attachment: scroll;
+}
+.task-list {
+  margin-left: 50px;
 }
 </style>

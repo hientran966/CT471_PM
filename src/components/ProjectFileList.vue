@@ -2,7 +2,7 @@
   <div class="all-file-container">
     <a-space direction="vertical" size="30">
       <div style="display: flex; justify-content: center;">
-        <InputSearch v-model="searchText" style="min-width: 1200px;" />
+        <InputSearch v-model="searchText" style="width: 100%;" />
       </div>
       <br>
       <a-row :gutter="[16, 16]" justify="start">
@@ -162,5 +162,6 @@ defineExpose({ loadData });
   margin: 20px auto 0 20px;
   width: 100%;
   box-sizing: border-box;
+  max-width: 1300px;
 }
 </style>

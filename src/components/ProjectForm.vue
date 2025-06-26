@@ -33,8 +33,10 @@ import CalendarService from '@/services/LichNghi.service';
 import ProjectService from "@/services/DuAn.service";
 import AuthService from "@/services/TaiKhoan.service"
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 
 dayjs.extend(isSameOrBefore);
+dayjs.extend(isSameOrAfter);
 const emit = defineEmits(["created"]);
 
 //Xử lý ngày nghỉ
@@ -45,23 +47,35 @@ const project = reactive({
   soNgay: null,
 });
 
-const danhSachNgayNghi = ref([]);
+const danhSachNgayNghi = ref<string[]>([]);
+const danhSachNgayBu = ref<{ start: string, end: string }[]>([]);
 
 const loadNgayNghi = async () => {
   const res = await CalendarService.getAllCalendars();
   const daysOff: string[] = [];
+  const buDays: { start: string, end: string }[] = [];
 
-  res.forEach(item => {
+  for (const item of res) {
     let start = dayjs(item.ngayBD);
     const end = dayjs(item.ngayKT);
-
     while (start.isSameOrBefore(end)) {
       daysOff.push(start.format("YYYY-MM-DD"));
       start = start.add(1, "day");
     }
-  });
+
+    if (item.idNgayBu) {
+      const ngayBu = await CalendarService.getNgayBuById(item.idNgayBu);
+      if (ngayBu?.ngayBD && ngayBu?.ngayKT) {
+        buDays.push({
+          start: dayjs(ngayBu.ngayBD).format("YYYY-MM-DD"),
+          end: dayjs(ngayBu.ngayKT).format("YYYY-MM-DD")
+        });
+      }
+    }
+  }
 
   danhSachNgayNghi.value = daysOff;
+  danhSachNgayBu.value = buDays;
 };
 
 onMounted(loadNgayNghi);
@@ -70,8 +84,16 @@ const formatDate = (date) => dayjs(date).format("YYYY-MM-DD");
 
 const isNgayLamViec = (date: Dayjs) => {
   const isWeekend = date.day() === 0 || date.day() === 6;
-  const isHoliday = danhSachNgayNghi.value.includes(formatDate(date));
-  return !isWeekend && !isHoliday;
+  const dateStr = formatDate(date);
+  const isHoliday = danhSachNgayNghi.value.includes(dateStr);
+
+  if (!isHoliday && !isWeekend) return true;
+
+  const isMakeUpDay = danhSachNgayBu.value.some(({ start, end }) => {
+    return dayjs(dateStr).isSameOrAfter(start) && dayjs(dateStr).isSameOrBefore(end);
+  });
+
+  return isMakeUpDay;
 };
 
 const isDisabledDate = (current: Dayjs) => {

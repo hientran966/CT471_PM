@@ -2,29 +2,27 @@
   <div class="me-background">
     <div class="dashboard-container">
       <a-row :gutter="16">
-        <a-col :span="20">
+        <a-col :span="24">
           <div class="me-header-overlay">
             <a-avatar :src="avatar" :size="64" class="me-avatar" />
             <h2>Xin chào, {{ user.tenNV }}!</h2>
           </div>
 
           <a-row :gutter="16" style="margin-top: 20px">
-            <a-col :span="12">
+            <a-col :xs="24" :md="24" :lg="16">
               <a-card title="Dự án & Công việc">
                 <a-table
                   :columns="treeColumns"
                   :data-source="treeData"
                   :pagination="false"
                   :default-expand-all-rows="true"
+                  :scroll="{ x: 600 }"
                 />
               </a-card>
             </a-col>
-            <a-col :span="12">
+            <a-col :xs="24" :md="24" :lg="8">
               <a-card title="Thông báo">
-                <a-list
-                  :data-source="announcements"
-                  bordered
-                >
+                <a-list :data-source="announcements" bordered>
                   <template #renderItem="{ item }">
                     <a-list-item>
                       <AnnouncementItem :item="item" />
@@ -41,7 +39,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, h, watch } from "vue";
+import { ref, computed, onMounted } from "vue";
 import AnnouncementItem from "@/components/AnnouncementItem.vue";
 import AuthService from "@/services/TaiKhoan.service";
 import ProjectService from "@/services/DuAn.service";
@@ -54,16 +52,7 @@ function formatDate(dateString) {
   return dayjs(dateString).format("DD/MM/YYYY");
 }
 
-const getNotificationType = (item) => {
-  if (item.idPhienBan) return "Đánh giá file";
-  if (item.idPhanCong) return "Báo cáo phân công";
-  if (item.idCongViec) return "Thông báo công việc";
-  if (item.idDuAn) return "Thông báo dự án";
-  return "Thông báo chung";
-};
-
 const announcements = ref([]);
-
 const user = ref({ id: "" });
 const treeData = ref([]);
 
@@ -83,8 +72,6 @@ onMounted(async () => {
       ]);
 
       announcements.value = await NotificationService.getByReceive(user.value.id);
-
-      console.log("announcements", announcements.value);
 
       const tasksWithProgress = await Promise.all(
         tasksRaw.map(async (task) => {
@@ -138,30 +125,8 @@ const treeColumns = [
 <style scoped>
 .dashboard-container {
   padding: 20px;
-}
-
-.sidebar {
-  background-color: #fff;
-  height: 100vh;
-  padding-top: 20px;
-  border-right: 1px solid #f0f0f0;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.me-header {
-  position: relative;
-  background-image: url("@/assets/background.jpg");
-  background-size: cover;
-  background-position: center;
-  height: 180px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .me-background {
@@ -180,10 +145,22 @@ const treeColumns = [
   display: flex;
   align-items: center;
   gap: 16px;
+  flex-wrap: wrap;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .me-avatar {
   border: 2px solid white;
+}
+
+@media (max-width: 768px) {
+  .me-background {
+    padding: 16px;
+  }
+
+  .me-header-overlay {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 </style>
