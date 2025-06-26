@@ -79,9 +79,9 @@ const routes = computed(() => [
     name: "task",
   },
   {
-    path: "/assign",
+    path: "/curr",
     breadcrumbName: "Chi tiết phân công",
-    name: "assign",
+    name: "curr",
   },
 ]);
 
@@ -91,7 +91,7 @@ function itemRender({ route }) {
     {
       onClick: (e) => {
         e.preventDefault();
-        if (route.name !== "assign") {
+        if (route.name !== "curr") {
           router.push({ name: route.name, query: { projectId: projectId.value, taskId: taskId.value } });
         }
       },

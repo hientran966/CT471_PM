@@ -11,7 +11,7 @@
     <div class="col-10 all-task-scroll">
       <a-page-header
         title="Danh sách file"
-        :breadcrumb="{ routes }"
+        :breadcrumb="{ routes: routes, itemRender }"
         :sub-title="currentProject?.tenDA || 'Chưa chọn dự án'"
       >
         <template #tags>
@@ -41,7 +41,7 @@
 import { ref, watch, h, onMounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import ProjectService from "@/services/DuAn.service";
-import FileList from "@/components/ProjectFile.vue";
+import FileList from "@/components/ProjectFileList.vue";
 import Menu from "@/components/Menu.vue";
 import FileForm from "@/components/FileForm.vue";
 
@@ -55,10 +55,33 @@ const listRef = ref();
 
 const activeKey = ref("file");
 
-const routes = [
-  { path: "index", breadcrumbName: "Dự án" },
-  { path: "file", breadcrumbName: "Danh sách file" }
-];
+const routes = computed(() => [
+  {
+    path: "/project",
+    breadcrumbName: "Dự án",
+    name: "project"
+  },
+  {
+    path: "/curr",
+    breadcrumbName: "Danh sách file",
+    name: "curr"
+  }
+]);
+
+function itemRender({ route }) {
+  return h(
+    "a",
+    {
+      onClick: (e) => {
+        e.preventDefault();
+        if (route.name && route.name !== "curr") {
+          router.push({ name: route.name, query: { projectId: projectId.value } });
+        }
+      }
+    },
+    route.breadcrumbName
+  );
+}
 
 function getItem(label, key, icon, children, type) {
   return { key, icon, children, label, type };
