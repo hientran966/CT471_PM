@@ -2,142 +2,140 @@
   <div class="all-assign-container">
     <a-space direction="vertical" size="30" style="width: 100%;">
       <InputSearch v-model="searchText" />
-      
-      <a-row :gutter="[16, 16]" style="margin-bottom: 20px; margin-top: 20px;">
-        <a-col :span="12">
-          <h1>Chi tiết phân công</h1>
-        </a-col>
-        <a-col :span="12" style="text-align: right;">
-          <a-space>
-            <a-button type="primary" @click="$router.push({ name: 'file', query: { taskId: props.taskId, projectId: props.projectId } })">Xem tất cả file</a-button>
-            <a-button type="primary" @click="transferList?.showModal()">Yêu cầu chuyển giao</a-button>
-            <a-button v-if="isCreator" type="primary" @click="assignForm?.showModal()">Phân công mới</a-button>
-          </a-space>
-        </a-col>
-      </a-row>
 
-      <!-- Chờ nhận -->
-      <template v-if="filteredWaiting.length">
-        <h3>Chờ nhận</h3>
-        <a-row v-for="assign in filteredWaiting" :key="assign.id">
-          <AssignDetail :assign="assign" @updated="handleUpdated" :task-id="props.taskId" />
-        </a-row>
-      </template>
+      <a-tabs v-model:activeKey="activeTab">
+        <!-- Tab: Đang thực hiện -->
+        <a-tab-pane key="inprogress" tab="Đang thực hiện">
+          <template v-if="paginatedInProgress.length">
+            <a-row v-for="assign in paginatedInProgress" :key="assign.id">
+              <AssignDetail :assign="assign" @updated="handleUpdated" :task-id="props.taskId" />
+            </a-row>
+            <a-pagination
+              v-model:current="currentPageInProgress"
+              :page-size="pageSize"
+              :total="filteredInProgress.length"
+              style="margin-top: 20px; text-align: center;"
+            />
+          </template>
+        </a-tab-pane>
 
-      <!-- Đang thực hiện -->
-      <template v-if="filteredInProgress.length">
-        <h3>Đang thực hiện</h3>
-        <a-row v-for="assign in filteredInProgress" :key="assign.id">
-          <AssignDetail :assign="assign" @updated="handleUpdated" :task-id="props.taskId" />
-        </a-row>
-        
-        <a-pagination
-          v-model:current="currentPage"
-          :page-size="pageSize"
-          :total="paginatedAssigns.length"
-          style="margin-top: 20px; text-align: center;"
-        />
-      </template>
+        <!-- Tab: Chờ nhận -->
+        <a-tab-pane key="waiting" tab="Chờ nhận">
+          <template v-if="paginatedWaiting.length">
+            <a-row v-for="assign in paginatedWaiting" :key="assign.id">
+              <AssignDetail :assign="assign" @updated="handleUpdated" :task-id="props.taskId" />
+            </a-row>
+            <a-pagination
+              v-model:current="currentPageWaiting"
+              :page-size="pageSize"
+              :total="filteredWaiting.length"
+              style="margin-top: 20px; text-align: center;"
+            />
+          </template>
+        </a-tab-pane>
 
-      <!-- Đã từ chối -->
-      <template v-if="filteredRejected.length">
-        <h3>Đã từ chối</h3>
-        <a-row v-for="assign in filteredRejected" :key="assign.id">
-          <AssignDetail :assign="assign" @updated="handleUpdated" :task-id="props.taskId" />
-        </a-row>
-      </template>
+        <!-- Tab: Đã từ chối -->
+        <a-tab-pane key="rejected" tab="Đã từ chối">
+          <template v-if="paginatedRejected.length">
+            <a-row v-for="assign in paginatedRejected" :key="assign.id">
+              <AssignDetail :assign="assign" @updated="handleUpdated" :task-id="props.taskId" />
+            </a-row>
+            <a-pagination
+              v-model:current="currentPageRejected"
+              :page-size="pageSize"
+              :total="filteredRejected.length"
+              style="margin-top: 20px; text-align: center;"
+            />
+          </template>
+        </a-tab-pane>
+      </a-tabs>
     </a-space>
-    <AssignForm ref="assignForm" @created="handleCreated" :task-id="props.taskId"/>
-    <TransferList ref="transferList" />
   </div>
 </template>
 
 <script setup>
 import InputSearch from "@/components/InputSearch.vue";
 import AssignDetail from "@/components/AssignDetail.vue";
-import AssignForm from "@/components/AssignForm.vue";
-import TransferList from "@/components/TransferList.vue";
 import TaskService from "@/services/CongViec.service";
 import AssignService from "@/services/PhanCong.service";
 import AuthService from "@/services/TaiKhoan.service";
-import { ref, computed, watch, onMounted } from "vue";
-import { useRouter } from "vue-router";
+import { ref, computed, watch } from "vue";
 
 const props = defineProps(['taskId', 'projectId']);
-const router = useRouter();
 
 const searchText = ref("");
 const assigns = ref([]);
-const assignForm = ref(null);
-const transferList = ref(null);
 const taskCreatorId = ref("");
+const currentUser = ref(null);
+const isReady = ref(false);
+
+const activeTab = ref("inprogress");
+const currentPage = ref(1);
+const pageSize = 5;
+
+const currentPageWaiting = ref(1);
+const currentPageInProgress = ref(1);
+const currentPageRejected = ref(1);
 
 const isCreator = computed(() => {
   return taskCreatorId.value && currentUser.value && taskCreatorId.value === currentUser.value.id;
 });
 
-const currentPage = ref(1);
-const pageSize = 5;
-
-const currentUser = ref(null);
-
-onMounted(async () => {
-  currentUser.value = await AuthService.getCurrentUser();
-});
-
 const filteredAssigns = computed(() => {
-  if (isCreator.value) {
-    return assigns.value
-      .filter(t => t.moTa.toLowerCase().includes(searchText.value.toLowerCase()))
-      .filter(t => t.trangThai !== 'Đã chuyển giao');
-  } else {
-    return assigns.value
-      .filter(t => t.idNguoiNhan === currentUser.value?.id)
-      .filter(t => t.moTa.toLowerCase().includes(searchText.value.toLowerCase()))
-      .filter(t => t.trangThai !== 'Đã chuyển giao');
-  }
+  if (!isReady.value) return [];
+
+  const keyword = searchText.value.toLowerCase();
+  const base = assigns.value
+    .filter(t => t.moTa?.toLowerCase().includes(keyword))
+    .filter(t => t.trangThai !== 'Đã chuyển giao');
+
+  return isCreator.value
+    ? base
+    : base.filter(t => t.idNguoiNhan === currentUser.value?.id);
 });
 
 const filteredWaiting = computed(() =>
   filteredAssigns.value.filter(a => !a.ngayNhan && a.trangThai !== 'Đã từ chối')
 );
-
 const filteredInProgress = computed(() =>
   filteredAssigns.value.filter(a => a.ngayNhan && a.trangThai !== 'Đã từ chối')
 );
-
 const filteredRejected = computed(() =>
   filteredAssigns.value.filter(a => a.trangThai === 'Đã từ chối')
 );
 
-const paginatedAssigns = computed(() => {
-  const start = (currentPage.value - 1) * pageSize;
+const paginatedWaiting = computed(() => {
+  const start = (currentPageWaiting.value - 1) * pageSize;
+  return filteredWaiting.value.slice(start, start + pageSize);
+});
+
+const paginatedInProgress = computed(() => {
+  const start = (currentPageInProgress.value - 1) * pageSize;
   return filteredInProgress.value.slice(start, start + pageSize);
 });
 
-function formatDateTime(date) {
-  const d = new Date(date);
-  const pad = (n) => n.toString().padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} `
-       + `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-}
+const paginatedRejected = computed(() => {
+  const start = (currentPageRejected.value - 1) * pageSize;
+  return filteredRejected.value.slice(start, start + pageSize);
+});
 
 const loadAssigns = async () => {
+  isReady.value = false;
   if (!props.taskId) {
     assigns.value = [];
     return;
   }
   try {
+    currentUser.value = await AuthService.getCurrentUser();
+    const task = await TaskService.getTaskById(props.taskId);
+    taskCreatorId.value = task?.idNguoiTao || "";
     assigns.value = await AssignService.getAssignmentsByTask(props.taskId);
-    taskCreatorId.value = await TaskService.getTaskById(props.taskId).then(task => task.idNguoiTao || "");
   } catch (error) {
     console.error("Error loading assigns:", error);
     assigns.value = [];
+  } finally {
+    isReady.value = true;
   }
-};
-
-const handleCreated = async () => {
-  await loadAssigns();
 };
 
 const handleUpdated = async () => {
@@ -148,8 +146,11 @@ const handleUpdated = async () => {
 watch(() => props.taskId, async () => {
   await loadAssigns();
 }, { immediate: true });
-watch(searchText, () => {
-  currentPage.value = 1;
+
+watch([searchText, activeTab], () => {
+  currentPageWaiting.value = 1;
+  currentPageInProgress.value = 1;
+  currentPageRejected.value = 1;
 });
 </script>
 

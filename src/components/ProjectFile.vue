@@ -1,24 +1,15 @@
 <template>
   <div class="all-file-container">
     <a-space direction="vertical" size="30">
-      <a-space style="width: 100%; justify-content: space-between;">
-        <h3>Danh sách File</h3>
-        <a-button
-          type="primary"
-          @click="() => createRef?.showModal()">
-          Tải lên file
-        </a-button>
-      </a-space>
-      <br>
       <div style="display: flex; justify-content: center;">
-        <InputSearch v-model="searchText" style="width: 800px;" />
+        <InputSearch v-model="searchText" style="min-width: 1200px;" />
       </div>
       <br>
       <a-row :gutter="[16, 16]" justify="start">
         <a-col
           v-for="file in filteredFiles"
           :key="file.id"
-          :span="8"
+          :span="6"
         >
           <FileCard :file="file" @preview="handlePreview" />
         </a-col>
@@ -162,11 +153,13 @@ const loadData = async () => {
 };
 
 watch(() => getProjectId(), loadData, { immediate: true });
+
+defineExpose({ loadData });
 </script>
 
 <style scoped>
 .all-file-container {
-  margin: 20px auto 0 auto;
+  margin: 20px auto 0 20px;
   width: 100%;
   box-sizing: border-box;
 }

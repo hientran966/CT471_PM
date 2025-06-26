@@ -8,9 +8,12 @@
         style="max-height: 100%;"
       />
     </div>
-    <div class="col-1"/>
-    <div class="col-9 all-task-scroll">
-      <a-page-header title="Danh sách công việc" :sub-title="currentProject?.tenDA || 'Chưa chọn dự án'" @back="() => $router.go(-1)">
+    <div class="col-10 all-task-scroll">
+      <a-page-header
+        title="Danh sách công việc"
+        :sub-title="currentProject?.tenDA || 'Chưa chọn dự án'"
+        :breadcrumb="{ routes: routes, itemRender }"
+      >
         <template #tags>
           <a-tag :color="getStatusColor(currentProject?.trangThai)">
             {{ currentProject?.trangThai || 'Không xác định' }}
@@ -66,6 +69,33 @@ function getStatusColor(status) {
   }
 }
 
+const routes = computed(() => [
+  {
+    path: "/project",
+    breadcrumbName: "Dự án",
+    name: "project"
+  },
+  {
+    path: "/task",
+    breadcrumbName: "Danh sách công việc",
+    name: "task"
+  }
+]);
+
+function itemRender({ route }) {
+  return h(
+    "a",
+    {
+      onClick: (e) => {
+        e.preventDefault();
+        if (route.name && route.name !== "task") {
+          router.push({ name: route.name, query: { projectId: projectId.value } });
+        }
+      }
+    },
+    route.breadcrumbName
+  );
+}
 
 const activeKey = ref("task");
 

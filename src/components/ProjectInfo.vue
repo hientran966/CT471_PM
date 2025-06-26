@@ -1,5 +1,5 @@
 <template>
-  <div style="padding: 20px; background: #fff; border-radius: 8px; max-width: 1000px; margin: 20px 0 auto auto;">
+  <div style="padding: 20px; background: #fff; border-radius: 8px; margin: 20px 0 auto auto;">
     <a-page-header
       :title="project.tenDA"
       :sub-title="project.trangThai"

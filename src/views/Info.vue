@@ -1,6 +1,6 @@
 <template>
   <div class="row" style="max-height: 100vh;">
-    <div class="col-4" style="background-attachment: fixed;">
+    <div class="col-2" style="background-attachment: fixed;">
       <Menu 
         :items="items"
         :selectedKeys="[activeKey]"
@@ -8,9 +8,21 @@
         style="max-height: 100%;"
       />
     </div>
-    <div class="col-8  all-task-scroll">
-      <ProjectInfo :projectId="projectId"/>
-    </div>  
+    <div class="col-10 all-task-scroll">
+      <a-page-header
+        title="Thông tin dự án"
+        :breadcrumb="{ routes }"
+        :sub-title="projectName || 'Chưa chọn dự án'"
+      >
+        <template #tags>
+          <a-tag :color="getStatusColor(currentProject?.trangThai)">
+            {{ currentProject?.trangThai || 'Không xác định' }}
+          </a-tag>
+        </template>
+      </a-page-header>
+
+      <ProjectInfo :projectId="projectId" />
+    </div> 
   </div>
 </template>
 
@@ -26,6 +38,32 @@ const router = useRouter();
 const taskId = ref("");
 const projectId = computed(() => String(route.query.projectId || ""));
 const items = ref([]);
+const currentProject = ref(null);
+const projectName = computed(() => currentProject.value?.tenDA || "");
+
+function getStatusColor(status) {
+  switch (status) {
+    case "Đã hoàn thành":
+      return "green";
+    case "Đang tiến hành":
+      return "blue";
+    case "Chưa bắt đầu":
+      return "default";
+    default:
+      return "default";
+  }
+}
+
+const routes = [
+  {
+    path: 'index',
+    breadcrumbName: 'Dự án',
+  },
+  {
+    path: 'info',
+    breadcrumbName: 'Thông tin',
+  },
+];
 
 function getItem(label, key, icon, children, type) {
   return {
@@ -42,29 +80,19 @@ const activeKey = ref("info");
 onMounted(async () => {
   taskId.value = route.query.taskId || "";
   const projects = await ProjectService.getAllProjects();
+  currentProject.value = projects.find(p => String(p.id) === projectId.value);
+
   items.value = [
     getItem(
-      h('b', projectId.value && projects.find(p => String(p.id) === projectId.value)
-        ? projects.find(p => String(p.id) === projectId.value).tenDA
-        : "Chọn dự án"
-      ),
-      "projectName",
-      null
+      h('b', currentProject.value?.tenDA || "Chọn dự án"),
+      "projectName"
     ),
-    getItem(
-      "Danh sách công việc",
-      "task"
-    ),
-    getItem(
-      "Thông tin dự án",
-      "info"
-    ),
-    getItem(
-      "File",
-      "file"
-    ),
+    getItem("Danh sách công việc", "task"),
+    getItem("Thông tin dự án", "info"),
+    getItem("File", "file"),
   ];
 });
+
 function onMenuClick({ key }) {
   if (key === "task") {
     router.push({ name: "task", query: { projectId: projectId.value } });

@@ -130,7 +130,6 @@ const fetchDepartmentsList = async () => {
     departments.value = allDepartments.filter(
       (dept: any) => dept.phanQuyen <= maxPermission
     );
-    console.log("Departments fetched:", departments.value);
   } finally {
     deptLoading.value = false;
   }
