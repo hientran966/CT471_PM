@@ -10,7 +10,7 @@
       ]"
     >
       <template #extra>
-        <a-button type="primary" @click="editProject">Chỉnh sửa</a-button>
+        <a-button type="primary" @click="openFormModal">Chỉnh sửa</a-button>
       </template>
     </a-page-header>
 
@@ -42,6 +42,7 @@
       </template>
     </a-list>
   </div>
+  <ProjectForm ref="formRef" :editing-project="project"/>
 </template>
 
 <script setup>
@@ -51,12 +52,14 @@ import { useRouter, useRoute } from "vue-router";
 import ProjectService from "@/services/DuAn.service";
 import TaskService from "@/services/CongViec.service";
 import AccountService from "@/services/TaiKhoan.service";
+import ProjectForm from "@/components/ProjectForm.vue";
 
 const router = useRouter();
 const route = useRoute();
 
 const project = ref({});
 const tasks = ref([]);
+const formRef = ref();
 
 const getStatusColor = (status) => {
   switch (status) {
@@ -151,8 +154,12 @@ const onBack = () => {
   router.back();
 };
 
-const editProject = () => {
-  router.push({ name: "project-edit", params: { id: project.value.id } });
+const openFormModal = () => {
+  if (formRef.value && formRef.value.showModal) {
+    formRef.value.showModal();
+  } else {
+    console.warn("Form chưa sẵn sàng");
+  }
 };
 
 onMounted(loadProject);

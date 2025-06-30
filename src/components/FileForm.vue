@@ -46,6 +46,7 @@ const props = defineProps<{
   taskId?: string;
   fileId?: string;
   projectId?: string;
+  avatar?: boolean;
 }>();
 
 const formState = reactive({
@@ -91,7 +92,14 @@ const handleOk = async () => {
         idNguoiTao: currentUser?.id ?? null,
       };
 
-      if (currentFileId.value) {
+      if (props.avatar) {
+        await FileService.uploadAvatar(currentUser.id, {
+          tenFile: file.name,
+          fileDataBase64: base64 ?? null,
+          idNguoiTao: currentUser.id,
+        });
+        message.success("Cập nhật ảnh đại diện thành công");
+      } else if (currentFileId.value) {
         await FileService.addVersion(currentFileId.value, payload);
         message.success("Tải phiên bản mới thành công");
       } else {

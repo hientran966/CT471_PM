@@ -11,6 +11,7 @@
         :src="avatar"
         :size="150"
         :style="!avatar ? { backgroundColor: '#1890ff' } : undefined"
+        @click="openAvatarUpload"
         >
         </a-avatar>
         <a-space>
@@ -36,6 +37,7 @@
   </div>
   <AccountForm ref="accountForm" @created="handleCreated"/>
   <PasswordForm ref="passwordForm"/>
+  <FileForm ref="fileForm" :avatar="true" @created="reloadUser"/>
 </template>
 
 <script setup>
@@ -46,6 +48,7 @@ import ASpace from "ant-design-vue/es/space";
 import ACard from "ant-design-vue/es/card";
 import AccountForm from "@/components/AccountForm.vue";
 import PasswordForm from "@/components/PasswordForm.vue";
+import FileForm from "@/components/FileForm.vue"
 import AuthService from "@/services/TaiKhoan.service";
 import { ref, onMounted, computed } from "vue";
 
@@ -60,6 +63,7 @@ const user = ref({
 
 const accountForm = ref(null);
 const passwordForm = ref(null);
+const fileForm = ref(null);
 
 const avatar = computed(() => {
   return user.value.id ? `/api/auth/avatar/${user.value.id}` : undefined;
@@ -79,6 +83,18 @@ function handlePassword() {
 
 function handleCreated() {
   onMounted();
+}
+
+function openAvatarUpload() {
+  if (fileForm.value?.showModal) {
+    fileForm.value.showModal();
+  } else {
+    console.warn("fileForm chưa được khởi tạo");
+  }
+}
+
+async function reloadUser() {
+  window.location.reload();
 }
 
 onMounted(async () => {

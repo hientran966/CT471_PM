@@ -1,24 +1,24 @@
 <template>
   <div>
-    <a-modal v-model:open="open" title="Thông tin dự án" ok-text="Lưu"
+    <a-modal v-model:open="open" :title="project.id ? 'Chỉnh sửa dự án' : 'Tạo dự án'" ok-text="Lưu"
       cancel-text="Thoát" @ok="handleOk">
-        <a-form :model="project" layout="vertical" @finish="handleOk" :rules="rules" ref="formRef">
-          <a-form-item label="Tên dự án" name="tenDA">
-            <a-input v-model:value="project.tenDA" />
-          </a-form-item>
+      <a-form :model="project" layout="vertical" @finish="handleOk" :rules="rules" ref="formRef">
+        <a-form-item label="Tên dự án" name="tenDA">
+          <a-input v-model:value="project.tenDA" />
+        </a-form-item>
 
-          <a-form-item label="Ngày bắt đầu" name="ngayBD">
-            <a-date-picker v-model:value="project.ngayBD" style="width: 100%" :disabled-date="isDisabledDate"/>
-          </a-form-item>
+        <a-form-item label="Ngày bắt đầu" name="ngayBD">
+          <a-date-picker v-model:value="project.ngayBD" style="width: 100%" :disabled-date="isDisabledDate" />
+        </a-form-item>
 
-          <a-form-item label="Ngày kết thúc" name="ngayKT">
-            <a-date-picker v-model:value="project.ngayKT" style="width: 100%" :disabled-date="isDisabledDate"/>
-          </a-form-item>
+        <a-form-item label="Ngày kết thúc" name="ngayKT">
+          <a-date-picker v-model:value="project.ngayKT" style="width: 100%" :disabled-date="isDisabledDate" />
+        </a-form-item>
 
-          <a-form-item label="Số ngày làm việc" name="soNgay">
-            <a-input-number v-model:value="project.soNgay" :min="1" style="width: 100%" />
-          </a-form-item>
-        </a-form>
+        <a-form-item label="Số ngày làm việc" name="soNgay">
+          <a-input-number v-model:value="project.soNgay" :min="1" style="width: 100%" />
+        </a-form-item>
+      </a-form>
     </a-modal>
   </div>
 </template>
@@ -26,7 +26,6 @@
 <script lang="ts" setup>
 import dayjs, { Dayjs } from 'dayjs';
 import { reactive, ref, toRaw, onMounted, watch } from 'vue';
-import type { UnwrapRef } from 'vue';
 import type { Rule } from 'ant-design-vue/es/form';
 import { message } from 'ant-design-vue';
 import CalendarService from '@/services/LichNghi.service';
@@ -34,19 +33,36 @@ import ProjectService from "@/services/DuAn.service";
 import AuthService from "@/services/TaiKhoan.service"
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
-
 dayjs.extend(isSameOrBefore);
 dayjs.extend(isSameOrAfter);
+
 const emit = defineEmits(["created"]);
 
-//Xử lý ngày nghỉ
+const props = defineProps<{
+  projects?: any[],
+  editingProject?: any | null,
+}>();
+
+// Form state
 const project = reactive({
+  id: null as number | null,
   tenDA: "",
-  ngayBD: null,
-  ngayKT: null,
-  soNgay: null,
+  ngayBD: null as Dayjs | null,
+  ngayKT: null as Dayjs | null,
+  soNgay: null as number | null,
 });
 
+watch(() => props.editingProject, (val) => {
+  if (val) {
+    project.id = val.id;
+    project.tenDA = val.tenDA;
+    project.ngayBD = dayjs(val.ngayBD);
+    project.ngayKT = dayjs(val.ngayKT);
+    project.soNgay = val.soNgay || null;
+  }
+}, { immediate: true });
+
+// Ngày nghỉ và ngày bù
 const danhSachNgayNghi = ref<string[]>([]);
 const danhSachNgayBu = ref<{ start: string, end: string }[]>([]);
 
@@ -80,7 +96,8 @@ const loadNgayNghi = async () => {
 
 onMounted(loadNgayNghi);
 
-const formatDate = (date) => dayjs(date).format("YYYY-MM-DD");
+// Xử lý ngày
+const formatDate = (date: Dayjs) => dayjs(date).format("YYYY-MM-DD");
 
 const isNgayLamViec = (date: Dayjs) => {
   const isWeekend = date.day() === 0 || date.day() === 6;
@@ -129,24 +146,15 @@ const tinhSoNgay = () => {
   project.soNgay = count;
 };
 
-// Tự động tính khi dữ liệu thay đổi
-watch(() => [project.soNgay, project.ngayBD], ([s, b]) => {
-  if (s && b) tinhNgayKT();
+// Tự động tính
+watch(() => [project.soNgay, project.ngayBD], () => {
+  if (project.soNgay && project.ngayBD) tinhNgayKT();
 });
-watch(() => [project.ngayBD, project.ngayKT], ([b, k]) => {
-  if (b && k) tinhSoNgay();
+watch(() => [project.ngayBD, project.ngayKT], () => {
+  if (project.ngayBD && project.ngayKT) tinhSoNgay();
 });
 
-//Xử lý form
-interface FormState {
-  tenDA: string;
-  ngayBD: Dayjs | undefined;
-  ngayKT: Dayjs | undefined;
-  soNgay: number | 0;
-
-}
-const formRef = ref();
-
+// Validate
 const rules: Record<string, Rule[]> = {
   tenDA: [
     { required: true, message: 'Xin nhập tên dự án', trigger: 'change' },
@@ -170,12 +178,20 @@ const rules: Record<string, Rule[]> = {
   ],
 };
 
-const resetForm = () => {
-  formRef.value.resetFields();
-};
+// Modal và xử lý
+const open = ref(false);
+const formRef = ref();
 
-const props = defineProps<{ projects?: any[] }>();
-const open = ref<boolean>(false);
+const resetForm = () => {
+  formRef.value?.resetFields();
+  Object.assign(project, {
+    id: null,
+    tenDA: "",
+    ngayBD: null,
+    ngayKT: null,
+    soNgay: null,
+  });
+};
 
 const showModal = () => {
   open.value = true;
@@ -185,18 +201,28 @@ const handleOk = async () => {
   try {
     await formRef.value.validate();
     const currentUser = await AuthService.getCurrentUser();
-    await ProjectService.createProject({
+
+    const payload = {
       tenDA: project.tenDA,
       ngayBD: formatDate(project.ngayBD),
       ngayKT: formatDate(project.ngayKT),
+      soNgay: project.soNgay,
       idNguoiTao: currentUser.id,
-    });
+    };
+
+    if (project.id) {
+      await ProjectService.updateProject(project.id, payload);
+      message.success("Cập nhật dự án thành công");
+    } else {
+      await ProjectService.createProject(payload);
+      message.success("Tạo dự án thành công");
+    }
+
     open.value = false;
-    message.success('Cập nhật dự án thành công', 5);
     emit("created");
   } catch (error) {
-    console.warn("Validation failed:", error);
-    message.error('Có lỗi xảy ra', 5);
+    console.error("Lỗi khi lưu dự án:", error);
+    message.error("Đã xảy ra lỗi");
   }
 };
 

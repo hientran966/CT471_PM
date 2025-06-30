@@ -52,6 +52,11 @@ class FileService {
     async approveVersion(fileId, versionId) {
         return (await this.api.put(`/${fileId}/version/${versionId}/approve`)).data;
     }
+
+    async uploadAvatar(userId, data) {
+        return (await this.api.post(`/avatar/${userId}`, data)).data;
+    }
+
 }
 
 export default new FileService();
