@@ -3,18 +3,20 @@
     <a-space direction="vertical" size="30" style="width: 100%;">
       <TaskFilter @filter="handleFilter" />
       <br />
-      <a-row :gutter="[16, 16]">
-        <a-col
-          v-for="task in filteredTasks"
-          :key="task.id"
-          :xs="24"
-          :sm="12"
-          :md="8"
-          :lg="6"
-        >
-          <TaskCard :task="task" :projectId="projectId" @saved="loadData" />
-        </a-col>
-      </a-row>
+      <div class="task-scroll-area">
+        <a-row :gutter="[16, 16]">
+          <a-col
+            v-for="task in filteredTasks"
+            :key="task.id"
+            :xs="24"
+            :sm="12"
+            :md="8"
+            :lg="6"
+          >
+            <TaskCard :task="task" :projectId="projectId" @saved="loadData" />
+          </a-col>
+        </a-row>
+      </div>
     </a-space>
   </div>
 </template>
@@ -129,7 +131,12 @@ defineExpose({ loadData });
   margin-top: 20px;
   padding: 0 16px;
   flex: 1 1 auto;
-  width: 100%;
+  width: 95%;
   box-sizing: border-box;
+}
+.task-scroll-area {
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+  padding-right: 8px;
 }
 </style>

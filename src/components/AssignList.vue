@@ -7,45 +7,51 @@
         <!-- Tab: Đang thực hiện -->
         <a-tab-pane key="inprogress" tab="Đang thực hiện">
           <template v-if="paginatedInProgress.length">
-            <a-row v-for="assign in paginatedInProgress" :key="assign.id">
-              <AssignDetail :assign="assign" @updated="handleUpdated" :task-id="props.taskId" />
-            </a-row>
-            <a-pagination
-              v-model:current="currentPageInProgress"
-              :page-size="pageSize"
-              :total="filteredInProgress.length"
-              style="margin-top: 20px; text-align: center;"
-            />
+            <div class="scroll-area">
+              <a-row v-for="assign in paginatedInProgress" :key="assign.id">
+                <AssignDetail :assign="assign" @updated="handleUpdated" :task-id="props.taskId" />
+              </a-row>
+              <a-pagination
+                v-model:current="currentPageInProgress"
+                :page-size="pageSize"
+                :total="filteredInProgress.length"
+                style="margin-top: 20px; text-align: center;"
+              />
+            </div>
           </template>
         </a-tab-pane>
 
         <!-- Tab: Chờ nhận -->
         <a-tab-pane key="waiting" tab="Chờ nhận">
           <template v-if="paginatedWaiting.length">
-            <a-row v-for="assign in paginatedWaiting" :key="assign.id">
-              <AssignDetail :assign="assign" @updated="handleUpdated" :task-id="props.taskId" />
-            </a-row>
-            <a-pagination
-              v-model:current="currentPageWaiting"
-              :page-size="pageSize"
-              :total="filteredWaiting.length"
-              style="margin-top: 20px; text-align: center;"
-            />
+            <div class="scroll-area">
+              <a-row v-for="assign in paginatedWaiting" :key="assign.id">
+                <AssignDetail :assign="assign" @updated="handleUpdated" :task-id="props.taskId" />
+              </a-row>
+              <a-pagination
+                v-model:current="currentPageWaiting"
+                :page-size="pageSize"
+                :total="filteredWaiting.length"
+                style="margin-top: 20px; text-align: center;"
+              />
+            </div>
           </template>
         </a-tab-pane>
 
         <!-- Tab: Đã từ chối -->
         <a-tab-pane key="rejected" tab="Đã từ chối">
           <template v-if="paginatedRejected.length">
-            <a-row v-for="assign in paginatedRejected" :key="assign.id">
-              <AssignDetail :assign="assign" @updated="handleUpdated" :task-id="props.taskId" />
-            </a-row>
-            <a-pagination
-              v-model:current="currentPageRejected"
-              :page-size="pageSize"
-              :total="filteredRejected.length"
-              style="margin-top: 20px; text-align: center;"
-            />
+            <div class="scroll-area">
+              <a-row v-for="assign in paginatedRejected" :key="assign.id">
+                <AssignDetail :assign="assign" @updated="handleUpdated" :task-id="props.taskId" />
+              </a-row>
+              <a-pagination
+                v-model:current="currentPageRejected"
+                :page-size="pageSize"
+                :total="filteredRejected.length"
+                style="margin-top: 20px; text-align: center;"
+              />
+            </div>
           </template>
         </a-tab-pane>
       </a-tabs>
@@ -156,9 +162,15 @@ watch([searchText, activeTab], () => {
 
 <style scoped>
 .all-assign-container {
-  max-width: 900px;
+  max-width: 1000px;
   margin: 20px auto 0 auto;
   width: 100%;
   box-sizing: border-box;
+}
+
+.scroll-area {
+  max-height: 525px;
+  overflow-y: auto;
+  padding-right: 8px;
 }
 </style>
