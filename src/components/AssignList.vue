@@ -169,7 +169,7 @@ watch([searchText, activeTab], () => {
 }
 
 .scroll-area {
-  max-height: 525px;
+  height: 525px;
   overflow-y: auto;
   padding-right: 8px;
 }
