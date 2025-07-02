@@ -4,18 +4,21 @@
       <TaskFilter @filter="handleFilter" />
       <br />
       <div class="task-scroll-area">
-        <a-row :gutter="[16, 16]">
-          <a-col
-            v-for="task in filteredTasks"
-            :key="task.id"
-            :xs="24"
-            :sm="12"
-            :md="8"
-            :lg="6"
-          >
-            <TaskCard :task="task" :projectId="projectId" @saved="loadData" />
-          </a-col>
-        </a-row>
+        <template v-if="filteredTasks.length > 0">
+          <a-row :gutter="[16, 16]">
+            <a-col
+              v-for="task in filteredTasks"
+              :key="task.id"
+              :xs="24"
+              :sm="12"
+              :md="8"
+              :lg="6"
+            >
+              <TaskCard :task="task" :projectId="projectId" @saved="loadData" />
+            </a-col>
+          </a-row>
+        </template>
+        <a-empty v-else description="Không có công việc phù hợp" />
       </div>
     </a-space>
   </div>
