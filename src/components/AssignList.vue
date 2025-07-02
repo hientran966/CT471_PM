@@ -1,7 +1,7 @@
 <template>
   <div class="all-assign-container">
     <a-space direction="vertical" size="30" style="width: 100%;">
-      <InputSearch v-model="searchText" />
+      <AssignFilter @filter="handleFilter" />
 
       <a-tabs v-model:activeKey="activeTab">
         <!-- Tab: Đang thực hiện -->
@@ -60,12 +60,15 @@
 </template>
 
 <script setup>
-import InputSearch from "@/components/InputSearch.vue";
+import AssignFilter from "@/components/AssignFilter.vue";
 import AssignDetail from "@/components/AssignDetail.vue";
 import TaskService from "@/services/CongViec.service";
 import AssignService from "@/services/PhanCong.service";
 import AuthService from "@/services/TaiKhoan.service";
 import { ref, computed, watch } from "vue";
+import dayjs from "dayjs";
+import isBetween from "dayjs/plugin/isBetween";
+dayjs.extend(isBetween);
 
 const props = defineProps(['taskId', 'projectId']);
 
@@ -82,6 +85,18 @@ const pageSize = 5;
 const currentPageWaiting = ref(1);
 const currentPageInProgress = ref(1);
 const currentPageRejected = ref(1);
+const filters = ref({
+  keyword: "",
+  receivedDate: null,
+  recipientName: "",
+});
+
+const handleFilter = (newFilters) => {
+  filters.value = newFilters;
+  currentPageWaiting.value = 1;
+  currentPageInProgress.value = 1;
+  currentPageRejected.value = 1;
+};
 
 const isCreator = computed(() => {
   return taskCreatorId.value && currentUser.value && taskCreatorId.value === currentUser.value.id;
@@ -90,14 +105,32 @@ const isCreator = computed(() => {
 const filteredAssigns = computed(() => {
   if (!isReady.value) return [];
 
-  const keyword = searchText.value.toLowerCase();
-  const base = assigns.value
-    .filter(t => t.moTa?.toLowerCase().includes(keyword))
-    .filter(t => t.trangThai !== 'Đã chuyển giao');
+  let base = assigns.value;
+
+  const keyword = filters.value.keyword?.toLowerCase() || "";
+  if (keyword) {
+    base = base.filter(a => a.moTa?.toLowerCase().includes(keyword));
+  }
+
+  const [start, end] = filters.value.receivedDate || [];
+  if (start && end) {
+    base = base.filter(a => {
+      if (!a.ngayNhan) return false;
+      const ngayNhan = dayjs(a.ngayNhan);
+      return ngayNhan.isBetween(dayjs(start), dayjs(end), "day", "[]");
+    });
+  }
+
+  const recipientName = filters.value.recipientName?.toLowerCase();
+  if (recipientName) {
+    base = base.filter(a => a.tenNguoiNhan?.toLowerCase().includes(recipientName));
+  }
+
+  base = base.filter(a => a.trangThai !== 'Đã chuyển giao');
 
   return isCreator.value
     ? base
-    : base.filter(t => t.idNguoiNhan === currentUser.value?.id);
+    : base.filter(a => a.idNguoiNhan === currentUser.value?.id);
 });
 
 const filteredWaiting = computed(() =>
@@ -135,7 +168,18 @@ const loadAssigns = async () => {
     currentUser.value = await AuthService.getCurrentUser();
     const task = await TaskService.getTaskById(props.taskId);
     taskCreatorId.value = task?.idNguoiTao || "";
-    assigns.value = await AssignService.getAssignmentsByTask(props.taskId);
+
+    const rawAssigns = await AssignService.getAssignmentsByTask(props.taskId);
+
+    assigns.value = await Promise.all(
+      rawAssigns.map(async (a) => {
+        const user = await AuthService.getAccountById(a.idNguoiNhan); // hoặc AccountService nếu đúng hơn
+        return {
+          ...a,
+          tenNguoiNhan: user?.tenNV || "",
+        };
+      })
+    );
   } catch (error) {
     console.error("Error loading assigns:", error);
     assigns.value = [];
