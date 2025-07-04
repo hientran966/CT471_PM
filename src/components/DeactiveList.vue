@@ -5,6 +5,7 @@
       </div>
       <InputSearch v-model="searchText" />
       <Table
+        ref="tableRef" 
         :columns="columns"
         :queryData="queryData"
         :searchText="searchText"
@@ -23,9 +24,15 @@
 import InputSearch from "@/components/InputSearch.vue";
 import Table from "@/components/Table.vue";
 import AuthService from "@/services/TaiKhoan.service";
+import RoleService from "@/services/VaiTro.service";
+import DepartmentService from "@/services/PhongBan.service";
 import { ref } from "vue";
+import { Modal, message } from "ant-design-vue";
 
 const searchText = ref("");
+const tableRef = ref(null);
+const roleMap = ref({});
+const deptMap = ref({});
 
 const columns = [
   { title: "Tên", dataIndex: "tenNV", sorter: true, width: "125px" },
@@ -38,23 +45,40 @@ const columns = [
     ],
     width: "95px",
   },
-  { title: "Email", dataIndex: "email", width: "100px", ellipsis: true, },
+  { title: "Email", dataIndex: "email", width: "140px", ellipsis: true },
   { title: "Số điện thoại", dataIndex: "SDT", width: "110px" },
-  { title: "Địa chỉ", dataIndex: "diaChi", width: "100px", ellipsis: true, },
+  { title: "Địa chỉ", dataIndex: "diaChi", width: "120px", ellipsis: true },
   {
     title: "Vai trò",
     dataIndex: "vaiTro",
-    filters: [
-      { text: "Giám đốc", value: "Giám đốc" },
-      { text: "Trưởng Phòng", value: "Trưởng Phòng" },
-      { text: "Nhân Viên", value: "Nhân Viên" },
-      { text: "Admin", value: "Admin" },
-    ],
-    width: "110px",
+    customRender: ({ text }) => roleMap.value[text] || text,
+    width: "120px",
   },
-  { title: "Địa chỉ", dataIndex: "diaChi", width: "100px", ellipsis: true, },
-  { title: "Hành động", dataIndex: "account", width: "100px"},
+  {
+    title: "Phòng ban",
+    dataIndex: "idPhong",
+    customRender: ({ text }) => deptMap.value[text] || text,
+    width: "150px",
+  },
+  {
+    title: "Hành động",
+    dataIndex: "account",
+    width: "100px"
+  },
 ];
+
+const loadMaps = async () => {
+  try {
+    const roles = await RoleService.getAllRoles();
+    const depts = await DepartmentService.getAllDepartments();
+
+    roleMap.value = Object.fromEntries(roles.map(role => [role.id, role.tenVaiTro]));
+    deptMap.value = Object.fromEntries(depts.map(dept => [dept.id, dept.tenPhong]));
+  } catch (e) {
+    console.error("Lỗi tải vai trò hoặc phòng ban:", e);
+  }
+};
+loadMaps();
 
 const queryData = async (params) => {
   try {
@@ -98,17 +122,22 @@ const queryData = async (params) => {
 };
 
 async function handleRecover(record) {
-    try {
-      const confirmed = await window.confirm(`Xác nhận khôi phục tài khoản ${record.tenNV}?`);
-      if (!confirmed) return;
-
-      await AuthService.recover(record.id);
-      message.success("Đã khôi phục tài khoản");
-      projectTable.value?.reload?.();
-    } catch (err) {
-      console.error(err);
-      message.error("Lỗi khi khôi phục tài khoản");
-    }
+    Modal.confirm({
+      title: `Xác nhận khôi phục`,
+      content: `Bạn có chắc muốn khôi phục tài khoản ${record.tenNV}?`,
+      okText: 'Xác nhận',
+      cancelText: 'Hủy',
+      onOk: async () => {
+        try {
+          await AuthService.recover(record.id);
+          message.success("Đã khôi phục tài khoản");
+          tableRef.value?.reload?.();
+        } catch (err) {
+          console.error(err);
+          message.error("Lỗi khi khôi phục tài khoản");
+        }
+      },
+    });
 }
 
 </script>

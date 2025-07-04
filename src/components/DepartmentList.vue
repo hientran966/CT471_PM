@@ -33,6 +33,7 @@ import DepartmentService from "@/services/PhongBan.service";
 import DeptRoleService from "@/services/LoaiPhongBan.service";
 import { ref } from "vue";
 import { StopOutlined, EditOutlined } from "@ant-design/icons-vue";
+import { Modal, message } from 'ant-design-vue'; 
 
 const searchText = ref("");
 const departmentForm = ref(null);
@@ -103,17 +104,22 @@ function handleEdit(record) {
 }
 
 async function handleDeactivate(record) {
-  try {
-    const confirmed = await window.confirm(`Xác nhận vô hiệu hóa phòng ban ${record.tenPhong}?`);
-    if (!confirmed) return;
-
-    await DepartmentService.deleteDepartment(record.id);
-    message.success("Đã vô hiệu hóa phòng ban");
-    departmentTable.value?.reload?.();
-  } catch (err) {
-    console.error(err);
-    message.error("Lỗi khi vô hiệu hóa phòng ban");
-  }
+  Modal.confirm({
+    title: 'Xác nhận vô hiệu hóa',
+    content: `Bạn có chắc muốn vô hiệu hóa phòng ban ${record.tenPhong}?`,
+    okText: 'Xác nhận',
+    cancelText: 'Hủy',
+    onOk: async () => {
+      try {
+        await DepartmentService.deleteDepartment(record.id);
+        message.success("Đã vô hiệu hóa phòng ban");
+        departmentTable.value?.reload?.();
+      } catch (err) {
+        console.error(err);
+        message.error("Lỗi khi vô hiệu hóa phòng ban");
+      }
+    },
+  });
 }
 
 </script>

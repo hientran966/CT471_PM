@@ -32,6 +32,7 @@ import DeptRoleForm from "@/components/DeptRoleForm.vue";
 import DeptRoleService from "@/services/LoaiPhongBan.service";
 import { ref } from "vue";
 import { StopOutlined, EditOutlined } from "@ant-design/icons-vue";
+import { Modal, message } from "ant-design-vue";
 
 const searchText = ref("");
 const deptRoleForm = ref(null);
@@ -90,17 +91,22 @@ function handleEdit(record) {
 }
 
 async function handleDeactivate(record) {
-  try {
-    const confirmed = await window.confirm(`Xác nhận vô hiệu hóa vai trò ${record.tenPhong}?`);
-    if (!confirmed) return;
-
-    await RoleService.deleteRole(record.id);
-    message.success("Đã vô hiệu hóa vai trò");
-    deptRoleTable.value?.reload?.();
-  } catch (err) {
-    console.error(err);
-    message.error("Lỗi khi vô hiệu hóa vai trò");
-  }
+  Modal.confirm({
+    title: "Xác nhận vô hiệu hóa",
+    content: `Bạn có chắc muốn vô hiệu hóa loại phòng ban ${record.loaiPhongBan}?`,
+    okText: "Xác nhận",
+    cancelText: "Hủy",
+    onOk: async () => {
+      try {
+        await DeptRoleService.deleteDeptRole(record.id);
+        message.success("Đã vô hiệu hóa loại phòng ban");
+        deptRoleTable.value?.reload?.();
+      } catch (err) {
+        console.error(err);
+        message.error("Lỗi khi vô hiệu hóa loại phòng ban");
+      }
+    },
+  });
 }
 
 </script>

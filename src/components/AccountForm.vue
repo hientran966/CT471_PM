@@ -148,6 +148,7 @@ const rules: Record<string, Rule[]> = {
     { pattern: /^[0-9]{9,11}$/, message: "SĐT 9–11 chữ số", trigger: "blur" },
   ],
   idPhong: [{ required: true, message: "Chọn phòng ban", trigger: "change" }],
+  vaiTro: [{ required: true, message: "Chọn vai trò", trigger: "change" }],
 };
 
 const passwordRules = computed(() =>

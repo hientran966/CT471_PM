@@ -32,6 +32,7 @@ import RoleForm from "@/components/RoleForm.vue";
 import RoleService from "@/services/VaiTro.service";
 import { ref } from "vue";
 import { StopOutlined, EditOutlined } from "@ant-design/icons-vue";
+import { Modal, message } from "ant-design-vue";
 
 const searchText = ref("");
 const roleForm = ref(null);
@@ -54,7 +55,7 @@ const queryData = async (params) => {
     if (params?.searchText && params.searchText.trim() !== "") {
       const keyword = params.searchText.trim().toLowerCase();
       res = res.filter(acc =>
-        acc.tenPhong?.toLowerCase().includes(keyword) ||
+        acc.tenVaiTro?.toLowerCase().includes(keyword) ||
         acc.phanQuyen?.toLowerCase().includes(keyword)
       );
     }
@@ -90,17 +91,22 @@ function handleEdit(record) {
 }
 
 async function handleDeactivate(record) {
-  try {
-    const confirmed = await window.confirm(`Xác nhận vô hiệu hóa vai trò ${record.tenPhong}?`);
-    if (!confirmed) return;
-
-    await RoleService.deleteRole(record.id);
-    message.success("Đã vô hiệu hóa vai trò");
-    roleTable.value?.reload?.();
-  } catch (err) {
-    console.error(err);
-    message.error("Lỗi khi vô hiệu hóa vai trò");
-  }
+  Modal.confirm({
+    title: "Xác nhận vô hiệu hóa",
+    content: `Bạn có chắc muốn vô hiệu hóa vai trò "${record.tenVaiTro}"?`,
+    okText: "Xác nhận",
+    cancelText: "Hủy",
+    onOk: async () => {
+      try {
+        await RoleService.deleteRole(record.id);
+        message.success("Đã vô hiệu hóa vai trò");
+        roleTable.value?.reload?.();
+      } catch (err) {
+        console.error(err);
+        message.error("Lỗi khi vô hiệu hóa vai trò");
+      }
+    },
+  });
 }
 
 </script>

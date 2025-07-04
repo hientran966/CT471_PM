@@ -34,6 +34,7 @@ import RoleService from "@/services/VaiTro.service";
 import DepartmentService from "@/services/PhongBan.service";
 import { ref } from "vue";
 import { StopOutlined, EditOutlined } from "@ant-design/icons-vue";
+import { Modal, message } from 'ant-design-vue';
 
 const searchText = ref("");
 const accountForm = ref(null);
@@ -135,17 +136,22 @@ function handleEdit(record) {
 }
 
 async function handleDeactivate(record) {
-  try {
-    const confirmed = await window.confirm(`Xác nhận vô hiệu hóa tài khoản ${record.tenNV}?`);
-    if (!confirmed) return;
-
-    await AuthService.deleteAccount(record.id);
-    message.success("Đã vô hiệu hóa tài khoản");
-    accountTable.value?.reload?.();
-  } catch (err) {
-    console.error(err);
-    message.error("Lỗi khi vô hiệu hóa tài khoản");
-  }
+  Modal.confirm({
+    title: `Xác nhận vô hiệu hóa`,
+    content: `Bạn có chắc muốn vô hiệu hóa tài khoản ${record.tenNV}?`,
+    okText: 'Xác nhận',
+    cancelText: 'Hủy',
+    onOk: async () => {
+      try {
+        await AuthService.deleteAccount(record.id);
+        message.success("Đã vô hiệu hóa tài khoản");
+        accountTable.value?.reload?.();
+      } catch (err) {
+        console.error(err);
+        message.error("Lỗi khi vô hiệu hóa tài khoản");
+      }
+    },
+  });
 }
 
 </script>
