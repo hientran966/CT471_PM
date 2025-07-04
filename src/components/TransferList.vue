@@ -84,7 +84,15 @@ const columnsSent = [
         record.idTruoc
       ),
   },
-  { title: "Người nhận", dataIndex: "tenNguoiNhan", sorter: true, width: "20%" },
+  {
+    title: "Người nhận",
+    dataIndex: "tenNguoiNhan",
+    sorter: true,
+    width: "20%",
+    customRender: ({ record }) => {
+      return h("span", {}, record.tenNguoiNhan + (record.isTransfer === 0 ? " (Thu hồi)" : ""));
+    },
+  },
   {
     title: "Trạng thái",
     dataIndex: "trangThai",
@@ -110,7 +118,15 @@ const columnsReceived = [
         record.idTruoc
       ),
   },
-  { title: "Người gửi", dataIndex: "tenNguoiGui", sorter: true, width: "20%" },
+  {
+    title: "Người gửi",
+    dataIndex: "tenNguoiGui",
+    sorter: true,
+    width: "20%",
+    customRender: ({ record }) => {
+      return h("span", {}, record.tenNguoiGui + (record.isTransfer === 0 ? " (Thu hồi)" : ""));
+    },
+  },
   {
     title: "Hành động",
     dataIndex: "actions",
@@ -118,9 +134,14 @@ const columnsReceived = [
     customRender: ({ record }) => {
       if (record.trangThai === "Từ chối") return h("span", { style: "color: red;" }, "Đã từ chối");
       if (record.trangThai === "Đã nhận") return h("span", { style: "color: green;" }, "Đã nhận");
+
+      const isThuHoi = record.isTransfer === 0;
+      const labelAccept = isThuHoi ? "Duyệt thu hồi" : "Nhận";
+      const labelReject = isThuHoi ? "Từ chối thu hồi" : "Từ chối";
+
       return h("div", [
-        h("a", { style: "margin-right: 8px; color: green;", onClick: () => handleAccept(record) }, "Nhận"),
-        h("a", { style: "color: red;", onClick: () => handleReject(record) }, "Từ chối"),
+        h("a", { style: "margin-right: 8px; color: green;", onClick: () => handleAccept(record) }, labelAccept),
+        h("a", { style: "color: red;", onClick: () => handleReject(record) }, labelReject),
       ]);
     },
   },
@@ -146,10 +167,15 @@ const queryDataSent = async (params) => {
   try {
     if (!currentUser.value) currentUser.value = await AccountService.getCurrentUser();
     const all = await AssignService.getTransferByUser(currentUser.value.id, props.taskId);
-    const sent = all.filter(t => t.idNguoiGui === currentUser.value.id);
+
+    const sent = all.filter(t => 
+      (t.isTransfer === 1 && t.idNguoiGui === currentUser.value.id) ||
+      (t.isTransfer === 0 && t.idNguoiNhan === currentUser.value.id)
+    );
 
     for (const t of sent) {
-      t.tenNguoiNhan = await getAccountName(t.idNguoiNhan);
+      const isThuHoi = t.isTransfer === 0;
+      t.tenNguoiNhan = await getAccountName(isThuHoi ? t.idNguoiGui : t.idNguoiNhan);
     }
 
     return filterAndSort(sent, params);
@@ -163,10 +189,15 @@ const queryDataReceived = async (params) => {
   try {
     if (!currentUser.value) currentUser.value = await AccountService.getCurrentUser();
     const all = await AssignService.getTransferByUser(currentUser.value.id, props.taskId);
-    const received = all.filter(t => t.idNguoiNhan === currentUser.value.id);
+
+    const received = all.filter(t => 
+      (t.isTransfer === 1 && t.idNguoiNhan === currentUser.value.id) ||
+      (t.isTransfer === 0 && t.idNguoiGui === currentUser.value.id)
+    );
 
     for (const t of received) {
-      t.tenNguoiGui = await getAccountName(t.idNguoiGui);
+      const isThuHoi = t.isTransfer === 0;
+      t.tenNguoiGui = await getAccountName(isThuHoi ? t.idNguoiNhan : t.idNguoiGui);
     }
 
     return filterAndSort(received, params);
@@ -184,11 +215,10 @@ const reloadTables = () => {
   }
 };
 
-
 const handleAccept = async (record) => {
   try {
     await AssignService.completeTransfer(record.id);
-    message.success("Đã nhận công việc");
+    message.success("Đã nhận");
     reloadTables();
     emit("updated");
   } catch (err) {
@@ -199,7 +229,7 @@ const handleAccept = async (record) => {
 const handleReject = async (record) => {
   try {
     await AssignService.rejectTransfer(record.id);
-    message.success("Đã từ chối công việc");
+    message.success("Đã từ chối");
     reloadTables();
     emit("updated");
   } catch (err) {
@@ -214,6 +244,7 @@ const handlePreview = (assignId) => {
 };
 
 const showModal = () => {
+  reloadTables();
   open.value = true;
 };
 const handleOk = () => {

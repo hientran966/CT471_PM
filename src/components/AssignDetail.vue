@@ -11,10 +11,10 @@
           <a v-if="!assign.ngayNhan && assign.trangThai !='Đã từ chối' && isAssigned && !view" type="link" href="#">Từ Chối</a>
         </a-popconfirm>
 
-        <a v-if="isManager && assign.tienDoCaNhan==0 && !view" type="link" @click="handleEdit" href="#">Sửa</a>
+        <a v-if="isManager && assign.trangThai=='Chưa bắt đầu' && !view" type="link" @click="handleEdit" href="#">Sửa</a>
 
-        <a-popconfirm title="Xác nhận thu hồi phân công?" @confirm="handleRemove" ok-text="Xác nhận" cancel-text="Hủy">
-          <a v-if="isManager && assign.trangThai== 'Chưa bắt đầu' && !view" type="link" href="#">Thu hồi</a>
+        <a-popconfirm title="Xác nhận thu hồi phân công?" @confirm="handleWithdraw" ok-text="Xác nhận" cancel-text="Hủy">
+          <a v-if="isManager && !view" type="link" href="#">Thu hồi</a>
         </a-popconfirm>
 
         <a v-if="assign.ngayNhan && isAssigned && !view" type="link" @click="reportForm?.showModal()" href="#">Cập Nhật</a>
@@ -73,7 +73,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, Ref, toRaw } from "vue";
 import AccountService from "@/services/TaiKhoan.service";
 import AssignService from "@/services/PhanCong.service";
 import TaskService from "@/services/CongViec.service";
@@ -115,6 +115,13 @@ const user = ref({
   SDT: "",
   diaChi: "",
   vaiTro: "",
+});
+
+const transfer = ref({
+  moTa: "Yêu cầu thu hồi",
+  idNguoiNhan: "",
+  idNguoiGui: props.assign.idNguoiNhan,
+  idCongViec: props.taskId
 });
 
 const isAssigned = computed(() => {
@@ -169,6 +176,15 @@ const handleEdit = () => {
   assignForm.value?.showModal();
 };
 
+const handleWithdraw = async () => {
+  if (props.assign.trangThai === 'Chưa bắt đầu') {
+    await handleRemove();
+  } else {
+    await handleRecall();
+    emit("updated");
+  }
+};
+
 const handleRemove = async () => {
   try {
     await AssignService.deleteAssignment(props.assign.id);
@@ -176,6 +192,27 @@ const handleRemove = async () => {
     emit("updated");
   } catch (err) {
     console.error("Lỗi khi thu hồi phân công", err);
+  }
+};
+
+const handleRecall = async () => {
+  try {
+    const currentUser = await AccountService.getCurrentUser();
+
+    const payload = {
+      moTa: "Yêu cầu thu hồi",
+      idNguoiGui: props.assign.idNguoiNhan,
+      idNguoiNhan: currentUser.id,
+      idCongViec: props.taskId ?? null,
+      isTransfer: 0,
+    };
+
+    await AssignService.startTransfer(props.assign.id, payload);
+    message.success("Đã gửi yêu cầu thu hồi");
+    emit("updated");
+  } catch (err) {
+    console.error("Lỗi khi gửi yêu cầu thu hồi:", err);
+    message.error(err?.response?.data || "Không gửi được yêu cầu thu hồi");
   }
 };
 

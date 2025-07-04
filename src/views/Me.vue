@@ -10,7 +10,10 @@
 
           <a-row :gutter="16" style="margin-top: 20px">
             <a-col :xs="24" :md="24" :lg="16">
-              <a-card title="Dự án & Công việc">
+              <a-card>
+                <template #title>
+                  <strong>Dự án & Công việc</strong>
+                </template>
                 <a-table
                   :columns="treeColumns"
                   :data-source="treeData"
@@ -23,7 +26,10 @@
               </a-card>
             </a-col>
             <a-col :xs="24" :md="24" :lg="8">
-              <a-card title="Thông báo">
+              <a-card>
+                <template #title>
+                  <strong>Thông báo</strong>
+                </template>
                 <a-list :data-source="announcements" bordered>
                   <template #renderItem="{ item }">
                     <a-list-item>

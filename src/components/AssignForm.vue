@@ -178,7 +178,7 @@ const handleOk = async () => {
       await AssignService.updateAssignment(props.assignId, {
         moTa: assign.moTa,
         doQuanTrong: assign.doQuanTrong,
-        idNguoiNhan: assign.idNguoiNhan[0],
+        idNguoiNhan: assign.idNguoiNhan,
       });
       message.success("Cập nhật phân công thành công", 5);
       emit("updated");

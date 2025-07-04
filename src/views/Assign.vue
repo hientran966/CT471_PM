@@ -23,7 +23,7 @@
               Xem tất cả file
             </a-button>
             <a-badge :count="pendingTransfersCount" offset="[3, 3]">
-              <a-button type="primary" @click="transferList?.showModal()">Yêu cầu chuyển giao</a-button>
+              <a-button type="primary" @click="transferList?.showModal()">Yêu cầu</a-button>
             </a-badge>
             <a-button v-if="isCreator" type="primary" @click="assignForm?.showModal()">Phân công mới</a-button>
           </a-space>
@@ -112,7 +112,11 @@ const loadPendingTransfers = async () => {
   currentUser.value = user;
 
   const all = await AssignService.getTransferByUser(user.id, taskId.value);
-  pendingTransfersCount.value = all.filter(t => t.idNguoiNhan === user.id && t.trangThai === "Chưa nhận").length;
+  pendingTransfersCount.value = all.filter(
+    t =>
+      (t.isTransfer === 1 && t.idNguoiNhan === user.id && t.trangThai === "Chưa nhận") ||
+      (t.isTransfer === 0 && t.idNguoiGui === user.id && t.trangThai === "Chưa nhận")
+  ).length;
 };
 
 const handleReload = async () => {
