@@ -54,6 +54,7 @@ export default {
   background-size: cover;
   background-position: center;
 }
+
 .page {
   background-color: white;
   display: flex;
@@ -77,7 +78,6 @@ h4 {
   color: #0050b3;
   font-weight: 600;
 }
-
 
 .message {
   color: red;

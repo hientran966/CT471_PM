@@ -48,6 +48,7 @@ import { useRouter } from "vue-router";
 
 const searchText = ref("");
 const projectForm = ref("");
+const currentUser = ref();
 const router = useRouter();
 
 function onRowClick(record) {
@@ -124,6 +125,7 @@ const columns = [
 const queryData = async (params) => {
   try {
     let res = await ProjectService.getAllProjects();
+    currentUser.value = await AccountService.getCurrentUser();
 
     if (params?.searchText && params.searchText.trim() !== "") {
       const keyword = params.searchText.trim().toLowerCase();

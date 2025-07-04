@@ -77,10 +77,17 @@ router.beforeEach((to, from, next) => {
   const isAuthenticated = !!localStorage.getItem("user");
 
   if (to.name === "login" && isAuthenticated) {
-    next({ name: "me" });
-  } else {
-    next();
+    return next({ name: "me" });
   }
+
+  const publicPages = ["login", "notfound"];
+  const authRequired = !publicPages.includes(to.name);
+
+  if (authRequired && !isAuthenticated) {
+    return next({ name: "login" });
+  }
+
+  next();
 });
 
 export default router;
