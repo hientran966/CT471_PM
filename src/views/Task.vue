@@ -103,7 +103,6 @@ onMounted(async () => {
   taskId.value = route.query.taskId || "";
   const projects = await ProjectService.getAllProjects();
   currentProject.value = projects.find(p => String(p.id) === projectId.value);
-  console.log(currentProject);
   items.value = [
     getItem(
       h('b', currentProject.value ? currentProject.value.tenDA : "Chọn dự án"),

@@ -164,12 +164,10 @@ const handleReject = async () => {
 
 const handleUpdated = async () => {
   emit("updated");
-  console.log("Cập nhật thành công");
 };
 
 const handleTransfer = async () => {
   emit("updated");
-  console.log("Chuyển giao thành công");
 };
 
 const handleEdit = () => {

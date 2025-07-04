@@ -84,7 +84,6 @@ const handleOk = async () => {
       tenVaiTro: role.tenVaiTro,
       phanQuyen: role.phanQuyen,
     };
-    console.log("Payload to save:", payload);
 
     if (editRoleId.value) {
       await RoleService.updateRole(editRoleId.value, payload);

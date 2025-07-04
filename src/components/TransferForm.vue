@@ -129,7 +129,6 @@ const handleOk = async () => {
       idCongViec: props.taskId ?? null
     };
 
-    console.log("Submitting transfer:", props.assignId, payload);
     await AssignService.startTransfer(props.assignId, payload);
 
     open.value = false;

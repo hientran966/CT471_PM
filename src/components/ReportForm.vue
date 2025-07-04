@@ -147,8 +147,6 @@ const handleOk = async () => {
               idNguoiTao: userId,
             };
 
-            console.log("Tạo file với payload:", filePayload);
-
             //Tạo file
             const res = await FileService.createFile(filePayload);
 
