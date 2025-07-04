@@ -1,11 +1,13 @@
 <template>
-  <div class="page">
-    <h4>Đăng Nhập</h4>
-    <LoginForm
-      :loginInfo="loginInfo"
-      @submit:login="login"
-    />
-    <p>{{ message }}</p>
+  <div class="login">
+    <div class="page">
+      <h4>Đăng Nhập</h4>
+      <LoginForm
+        :loginInfo="loginInfo"
+        @submit:login="login"
+      />
+      <p>{{ message }}</p>
+    </div>
   </div>
 </template>
 <script>
@@ -44,6 +46,14 @@ export default {
 </script>
 
 <style scoped>
+.login {
+  margin-left: -60px;
+  width: 100vw;
+  height: 100vh;
+  background-image: url("/login.jpg");
+  background-size: cover;
+  background-position: center;
+}
 .page {
   background-color: white;
   display: flex;
@@ -64,8 +74,10 @@ export default {
 h4 {
   font-size: 24px;
   margin-bottom: 20px;
-  color: #000000;
+  color: #0050b3;
+  font-weight: 600;
 }
+
 
 .message {
   color: red;

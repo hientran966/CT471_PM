@@ -65,11 +65,11 @@
             placeholder="Chọn độ quan trọng"
             allow-clear
           >
-            <a-select-option value="1">Thấp</a-select-option>
-            <a-select-option value="2">Trung bình</a-select-option>
-            <a-select-option value="3">Quan trọng</a-select-option>
-            <a-select-option value="4">Rất quan trọng</a-select-option>
-            <a-select-option value="5">Cực kỳ quan trọng</a-select-option>
+            <a-select-option :value="1">Thấp</a-select-option>
+            <a-select-option :value="2">Trung bình</a-select-option>
+            <a-select-option :value="3">Quan trọng</a-select-option>
+            <a-select-option :value="4">Rất quan trọng</a-select-option>
+            <a-select-option :value="5">Cực kỳ quan trọng</a-select-option>
           </a-select>
         </a-form-item>
       </a-form>

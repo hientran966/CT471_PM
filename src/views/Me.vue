@@ -17,6 +17,8 @@
                   :pagination="false"
                   :default-expand-all-rows="true"
                   :scroll="{ x: 600 }"
+                  :rowClassName="(record) => record.children ? 'project-row' : 'task-row'"
+                  :customRow="customRow"
                 />
               </a-card>
             </a-col>
@@ -47,6 +49,8 @@ import TaskService from "@/services/CongViec.service";
 import AssignService from "@/services/PhanCong.service";
 import NotificationService from "@/services/ThongBao.service";
 import dayjs from "dayjs";
+import { useRouter } from "vue-router";
+const router = useRouter();
 
 function formatDate(dateString) {
   return dayjs(dateString).format("DD/MM/YYYY");
@@ -59,6 +63,24 @@ const treeData = ref([]);
 const avatar = computed(() =>
   user.value.id ? `/api/auth/avatar/${user.value.id}` : undefined
 );
+
+function customRow(record) {
+  if (!record.children) {
+    return {
+      style: { cursor: "pointer" },
+      onClick: () => {
+        router.push({
+          name: "assign",
+          query: {
+            taskId: record.key.replace("task-", ""),
+            projectId: record.projectId,
+          },
+        });
+      },
+    };
+  }
+  return {};
+}
 
 onMounted(async () => {
   try {
@@ -95,6 +117,7 @@ onMounted(async () => {
             ngayBD: formatDate(task.ngayBD),
             ngayKT: formatDate(task.ngayKT),
             trangThai: task.trangThai,
+            projectId: task.idDuAn,
           }));
 
         return {

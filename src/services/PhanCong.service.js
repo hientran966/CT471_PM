@@ -57,8 +57,12 @@ class AssignmentService {
         return (await this.api.get(`/${id}/pending`)).data;
     }
 
-    async getTransferByUser(id) {
-        return (await this.api.get(`/${id}/userTransfer`)).data;
+    async getTransferByUser(userId, idCongViec = null) {
+        return (
+            await this.api.get(`/user/${userId}/transfer`, {
+            params: idCongViec ? { idCongViec } : {},
+            })
+        ).data;
     }
 }
 

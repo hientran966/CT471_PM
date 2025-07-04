@@ -247,6 +247,11 @@ const showModal = async (taskId?: string) => {
     }
   } else {
     editTaskId.value = null;
+    task.tenCV = "";
+    task.moTa = "";
+    task.ngayBD = null;
+    task.ngayKT = null;
+    task.soNgay = null;
   }
 
   open.value = true;

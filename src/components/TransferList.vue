@@ -10,7 +10,6 @@
             :columns="columnsSent"
             :queryData="queryDataSent"
             :searchText="searchText"
-            @row-click="onRowClick"
           />
         </a-tab-pane>
 
@@ -20,12 +19,12 @@
             :columns="columnsReceived"
             :queryData="queryDataReceived"
             :searchText="searchText"
-            @row-click="onRowClick"
           />
         </a-tab-pane>
       </a-tabs>
     </a-modal>
   </div>
+  <AssignPreview ref="previewRef" />
 </template>
 
 <script lang="ts" setup>
@@ -36,16 +35,24 @@ import AccountService from "@/services/TaiKhoan.service";
 import { message } from "ant-design-vue";
 import { ref, h } from "vue";
 import { useRouter } from "vue-router";
+import AssignPreview from "@/components/AssignPreview.vue";
 
 const emit = defineEmits(["updated"]);
 
 const open = ref(false);
 const searchText = ref("");
+const previewRef = ref();
 const activeTab = ref("sent");
+const sentTable = ref();
+const receivedTable = ref();
 
 const router = useRouter();
 const currentUser = ref(null);
 const accountNameMap = ref(new Map());
+
+const props = defineProps({
+  taskId: String,
+});
 
 const getAccountName = async (id) => {
   if (!id) return "";
@@ -60,14 +67,23 @@ const getAccountName = async (id) => {
   }
 };
 
-const onRowClick = (record) => {
-  router.push({ name: "task", query: { projectId: record.id } });
-};
-
 const columnsSent = [
   { title: "ID", dataIndex: "id", sorter: true, width: "10%" },
   { title: "Mô tả", dataIndex: "moTa", sorter: true, width: "20%" },
-  { title: "Phân công", dataIndex: "idTruoc", sorter: true, width: "15%" },
+  {
+    title: "Phân công",
+    dataIndex: "idTruoc",
+    width: "15%",
+    customRender: ({ record }) =>
+      h(
+        "a",
+        {
+          style: "color: #1890ff; cursor: pointer;",
+          onClick: () => handlePreview(record.idTruoc),
+        },
+        record.idTruoc
+      ),
+  },
   { title: "Người nhận", dataIndex: "tenNguoiNhan", sorter: true, width: "20%" },
   {
     title: "Trạng thái",
@@ -80,7 +96,20 @@ const columnsSent = [
 const columnsReceived = [
   { title: "ID", dataIndex: "id", sorter: true, width: "10%" },
   { title: "Mô tả", dataIndex: "moTa", sorter: true, width: "20%" },
-  { title: "Phân công", dataIndex: "idTruoc", sorter: true, width: "15%" },
+  {
+    title: "Phân công",
+    dataIndex: "idTruoc",
+    width: "15%",
+    customRender: ({ record }) =>
+      h(
+        "a",
+        {
+          style: "color: #1890ff; cursor: pointer;",
+          onClick: () => handlePreview(record.idTruoc),
+        },
+        record.idTruoc
+      ),
+  },
   { title: "Người gửi", dataIndex: "tenNguoiGui", sorter: true, width: "20%" },
   {
     title: "Hành động",
@@ -116,7 +145,7 @@ const filterAndSort = (data, params) => {
 const queryDataSent = async (params) => {
   try {
     if (!currentUser.value) currentUser.value = await AccountService.getCurrentUser();
-    const all = await AssignService.getTransferByUser(currentUser.value.id);
+    const all = await AssignService.getTransferByUser(currentUser.value.id, props.taskId);
     const sent = all.filter(t => t.idNguoiGui === currentUser.value.id);
 
     for (const t of sent) {
@@ -133,7 +162,7 @@ const queryDataSent = async (params) => {
 const queryDataReceived = async (params) => {
   try {
     if (!currentUser.value) currentUser.value = await AccountService.getCurrentUser();
-    const all = await AssignService.getTransferByUser(currentUser.value.id);
+    const all = await AssignService.getTransferByUser(currentUser.value.id, props.taskId);
     const received = all.filter(t => t.idNguoiNhan === currentUser.value.id);
 
     for (const t of received) {
@@ -147,10 +176,21 @@ const queryDataReceived = async (params) => {
   }
 };
 
+const reloadTables = () => {
+  if (activeTab.value === "received") {
+    receivedTable.value?.reload?.();
+  } else {
+    sentTable.value?.reload?.();
+  }
+};
+
+
 const handleAccept = async (record) => {
   try {
     await AssignService.completeTransfer(record.id);
     message.success("Đã nhận công việc");
+    reloadTables();
+    emit("updated");
   } catch (err) {
     message.error("Lỗi nhận công việc");
   }
@@ -160,8 +200,16 @@ const handleReject = async (record) => {
   try {
     await AssignService.rejectTransfer(record.id);
     message.success("Đã từ chối công việc");
+    reloadTables();
+    emit("updated");
   } catch (err) {
     message.error("Lỗi từ chối công việc");
+  }
+};
+
+const handlePreview = (assignId) => {
+  if (previewRef.value?.showModal) {
+    previewRef.value.showModal(assignId);
   }
 };
 

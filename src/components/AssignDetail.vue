@@ -21,7 +21,7 @@
 
         <a v-if="assign.ngayNhan && isAssigned && !view" type="link" @click="transferForm?.showModal()" href="#">Chuyển</a>
 
-        <a v-if="assign.trangThai =='Đang thực hiện' && !view" type="link" @click="transferHistoryRef?.showModal()" href="#">Xem</a>
+        <a v-if="!view" type="link" @click="transferHistoryRef?.showModal()" href="#">Xem</a>
       </a-space>
     </template>
     <div style="display: flex; align-items: center; gap: 8px;">
@@ -62,13 +62,13 @@
       </p>
     </div>
     <div style="display: flex; justify-content: space-between;">
-      <p><strong>Trạng thái:</strong> {{ assign.trangThai }}</p>
+      <p v-if="!view"><strong>Trạng thái:</strong> {{ assign.trangThai }}</p>
       <a-progress :percent="assign.tienDoCaNhan" style="margin: 8px 0 0 0; width: 300px;" />
     </div>
   </a-card>
   <TransferHistory ref="transferHistoryRef" :transfers="[...allAssignments].reverse()" :assign="assign.id" :taskId="taskId"/>
   <ReportForm ref="reportForm" @created="handleUpdated" :assign="assign" :task="props.taskId"/>
-  <TransferForm ref="transferForm" @created="handleTransfer" :assign-id="assign.id"/>
+  <TransferForm ref="transferForm" @created="handleTransfer" :assign-id="assign.id" :task-id="props.taskId"/>
   <AssignForm ref="assignForm" @updated="handleUpdated" :task-id="props.taskId" :assignId="assign.id"/>
 </template>
 

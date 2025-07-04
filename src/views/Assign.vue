@@ -29,11 +29,11 @@
           </a-space>
         </template>
       </a-page-header>
-      <AssignList :taskId="taskId" :projectId="projectId"/>
+      <AssignList ref="assignListRef" :taskId="taskId" :projectId="projectId"/>
     </div>
   </div>
-  <AssignForm ref="assignForm" :task-id="taskId" @created="() => assignListRef?.loadAssigns?.()" />
-  <TransferList ref="transferList" />
+  <AssignForm ref="assignForm" :task-id="taskId" @created="handleReload" />
+  <TransferList ref="transferList" :task-id="taskId" @updated="handleReload"/>
 </template>
 
 <script setup>
@@ -60,6 +60,7 @@ const currentUser = ref(null);
 const taskCreatorId = ref("");
 const pendingTransfersCount = ref(0);
 const isCreator = computed(() => taskCreatorId.value === currentUser.value?.id);
+const assignListRef = ref(null);
 
 function getItem(label, key, icon, children, type) {
   return {
@@ -110,8 +111,13 @@ const loadPendingTransfers = async () => {
   const user = currentUser.value || await AuthService.getCurrentUser();
   currentUser.value = user;
 
-  const all = await AssignService.getTransferByUser(user.id);
+  const all = await AssignService.getTransferByUser(user.id, taskId.value);
   pendingTransfersCount.value = all.filter(t => t.idNguoiNhan === user.id && t.trangThai === "Chưa nhận").length;
+};
+
+const handleReload = async () => {
+  await assignListRef.value?.loadAssigns?.();
+  await loadPendingTransfers();
 };
 
 onMounted(async () => {

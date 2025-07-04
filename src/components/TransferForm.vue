@@ -75,7 +75,7 @@ import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 dayjs.extend(isSameOrBefore);
 const emit = defineEmits(["created"]);
 
-const props = defineProps<{ assignId: string }>();
+const props = defineProps<{ assignId: string, taskId: string }>();
 
 const formRef = ref();
 const accounts = ref<{
@@ -92,6 +92,7 @@ const transfer = reactive({
   moTa: "",
   idNguoiNhan: null as string | null,
   idNguoiGui: "",
+  idCongViec: props.taskId
 });
 
 function getTagColor(count: number) {
@@ -122,11 +123,15 @@ const handleOk = async () => {
     await formRef.value.validate();
     const currentUser = await AuthService.getCurrentUser();
     transfer.idNguoiGui = currentUser.id;
-    console.log("Submitting transfer:", props.assignId, toRaw(transfer));
-    await AssignService.startTransfer(
-      props.assignId,
-      toRaw(transfer)
-    );
+
+    const payload = {
+      ...toRaw(transfer),
+      idCongViec: props.taskId ?? null
+    };
+
+    console.log("Submitting transfer:", props.assignId, payload);
+    await AssignService.startTransfer(props.assignId, payload);
+
     open.value = false;
     message.success("Gửi yêu cầu chuyển giao thành công", 5);
     emit("created");
@@ -156,14 +161,17 @@ const fetchAccountsByDept = async (deptId: string) => {
   deptLoading.value = true;
   try {
     const rawAccounts = await AuthService.getDepartmentAccounts(deptId);
+    const currentUser = await AuthService.getCurrentUser();
     const results = await Promise.all(
-      rawAccounts.map(async (acc: any) => {
-        const res = await AuthService.getAssignNumber(acc.id);
-        return {
-          ...acc,
-          assignCount: Number(res.count) || 0,
-        };
-      })
+      rawAccounts
+        .filter((acc: any) => acc.id !== currentUser.id)
+        .map(async (acc: any) => {
+          const res = await AuthService.getAssignNumber(acc.id);
+          return {
+            ...acc,
+            assignCount: Number(res.count) || 0,
+          };
+        })
     );
     accounts.value = results.sort((a, b) => b.assignCount - a.assignCount);
   } finally {

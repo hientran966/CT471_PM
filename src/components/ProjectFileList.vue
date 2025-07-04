@@ -1,20 +1,14 @@
 <template>
-  <div class="all-file-container">
-    <a-space direction="vertical" size="30">
-      <div style="display: flex; justify-content: center;">
-        <InputSearch v-model="searchText" style="width: 100%;" />
-      </div>
-      <br>
-      <a-row :gutter="[16, 16]" justify="start">
-        <a-col
-          v-for="file in filteredFiles"
-          :key="file.id"
-          :span="6"
-        >
-          <FileCard :file="file" @preview="handlePreview" />
-        </a-col>
-      </a-row>
-    </a-space>
+  <div class="file-list-wrapper">
+    <InputSearch v-model="searchText" style="margin-bottom: 20px;" />
+    <div class="file-card-container">
+      <FileCard
+        v-for="file in filteredFiles"
+        :key="file.id"
+        :file="file"
+        @preview="handlePreview"
+      />
+    </div>
   </div>
   <FileDetail
     :file="selectedFile"
@@ -158,10 +152,10 @@ defineExpose({ loadData });
 </script>
 
 <style scoped>
-.all-file-container {
-  margin: 20px auto 0 20px;
-  width: 100%;
-  box-sizing: border-box;
-  max-width: 1300px;
+.file-card-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: flex-start;
 }
 </style>

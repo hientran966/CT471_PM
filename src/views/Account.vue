@@ -30,7 +30,8 @@
           <p><strong>Email:</strong> {{ user.email }}</p>
           <p><strong>Số điện thoại:</strong> {{ user.SDT }}</p>
           <p><strong>Địa chỉ:</strong> {{ user.diaChi }}</p>
-          <p><strong>Vai trò:</strong> {{ user.vaiTro }}</p>
+          <p><strong>Phòng ban:</strong> {{ deptName }}</p>
+          <p><strong>Vai trò:</strong> {{ roleName }}</p>
         </a-card>
       </a-space>
     </div>
@@ -50,6 +51,8 @@ import AccountForm from "@/components/AccountForm.vue";
 import PasswordForm from "@/components/PasswordForm.vue";
 import FileForm from "@/components/FileForm.vue"
 import AuthService from "@/services/TaiKhoan.service";
+import RoleService from "@/services/VaiTro.service"
+import DepartmentService from "@/services/PhongBan.service";
 import { ref, onMounted, computed } from "vue";
 
 const user = ref({
@@ -61,6 +64,8 @@ const user = ref({
   vaiTro: "",
 });
 
+const deptName = ref("");
+const roleName = ref("");
 const accountForm = ref(null);
 const passwordForm = ref(null);
 const fileForm = ref(null);
@@ -103,8 +108,14 @@ onMounted(async () => {
     try {
       const data = await AuthService.getAccountById(currUser.id);
       Object.assign(user.value, data);
+
+      const role = await RoleService.getRoleById(data.vaiTro);
+      roleName.value = role.tenVaiTro;
+
+      const dept = await DepartmentService.getDepartmentById(data.idPhong);
+      deptName.value = dept.tenPhong;
     } catch (err) {
-      console.error("Không lấy được thông tin tài khoản:", err);
+      console.error("Không lấy được thông tin tài khoản hoặc vai trò:", err);
     }
   }
 });

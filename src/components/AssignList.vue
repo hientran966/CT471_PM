@@ -13,13 +13,13 @@
               </a-row>
             </template>
             <a-empty v-else description="Không có phân công đang thực hiện" />
-            <a-pagination
-              v-model:current="currentPageInProgress"
-              :page-size="pageSize"
-              :total="filteredInProgress.length"
-              style="margin-top: 20px; text-align: center;"
-            />
           </div>
+          <a-pagination
+            v-model:current="currentPageInProgress"
+            :page-size="pageSize"
+            :total="filteredInProgress.length"
+            style="margin-top: 20px; text-align: center;"
+          />
         </a-tab-pane>
 
         <!-- Tab: Chờ nhận -->
@@ -31,13 +31,13 @@
               </a-row>
             </template>
             <a-empty v-else description="Không có phân công đang chờ nhận" />
-            <a-pagination
-              v-model:current="currentPageWaiting"
-              :page-size="pageSize"
-              :total="filteredWaiting.length"
-              style="margin-top: 20px; text-align: center;"
-            />
           </div>
+          <a-pagination
+            v-model:current="currentPageWaiting"
+            :page-size="pageSize"
+            :total="filteredWaiting.length"
+            style="margin-top: 20px; text-align: center;"
+          />
         </a-tab-pane>
 
         <!-- Tab: Đã từ chối -->
@@ -49,13 +49,13 @@
               </a-row>
             </template>
             <a-empty v-else description="Không có phân công bị từ chối" />
-            <a-pagination
-              v-model:current="currentPageRejected"
-              :page-size="pageSize"
-              :total="filteredRejected.length"
-              style="margin-top: 20px; text-align: center;"
-            />
           </div>
+          <a-pagination
+            v-model:current="currentPageRejected"
+            :page-size="pageSize"
+            :total="filteredRejected.length"
+            style="margin-top: 20px; text-align: center;"
+          />
         </a-tab-pane>
 
       </a-tabs>
@@ -84,7 +84,7 @@ const isReady = ref(false);
 
 const activeTab = ref("inprogress");
 const currentPage = ref(1);
-const pageSize = 5;
+const pageSize = 2;
 
 const currentPageWaiting = ref(1);
 const currentPageInProgress = ref(1);
@@ -177,7 +177,7 @@ const loadAssigns = async () => {
 
     assigns.value = await Promise.all(
       rawAssigns.map(async (a) => {
-        const user = await AuthService.getAccountById(a.idNguoiNhan); // hoặc AccountService nếu đúng hơn
+        const user = await AuthService.getAccountById(a.idNguoiNhan);
         return {
           ...a,
           tenNguoiNhan: user?.tenNV || "",
@@ -206,6 +206,8 @@ watch([searchText, activeTab], () => {
   currentPageInProgress.value = 1;
   currentPageRejected.value = 1;
 });
+
+defineExpose({ loadAssigns });
 </script>
 
 <style scoped>
@@ -217,7 +219,7 @@ watch([searchText, activeTab], () => {
 }
 
 .scroll-area {
-  height: 525px;
+  height: 450px;
   overflow-y: auto;
   padding-right: 8px;
 }

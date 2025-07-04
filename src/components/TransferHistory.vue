@@ -8,7 +8,6 @@
             <div v-if="item.type === 'transfer'">
               <strong>[Chuyển giao]</strong><br />
               <strong>Người nhận:</strong> {{ item.content.nguoiNhan }}<br />
-              <strong>Mô tả:</strong> {{ item.content.moTa }}<br />
               <strong>Ngày nhận:</strong> {{ dayjs(item.content.ngayNhan).format("DD/MM/YYYY HH:mm") }}<br />
               <strong>Ngày hoàn tất:</strong> {{ item.content.ngayHoanTat ? dayjs(item.content.ngayHoanTat).format("DD/MM/YYYY HH:mm") : "Chưa xác định" }}<br />
               <strong>Trạng thái:</strong> {{ item.content.trangThai }}

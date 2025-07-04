@@ -28,19 +28,21 @@
     </a-descriptions>
 
     <h4 style="margin-top: 30px;">Danh sách công việc</h4>
-    <a-list :dataSource="tasks" :locale="{ emptyText: 'Chưa có công việc nào' }">
-      <template #renderItem="{ item }">
-        <a-list-item :key="item.id">
-          <a-list-item-meta
-            :title="item.tenCV"
-            :description="`Trạng thái: ${computeTaskStatus(item)}`"
-          />
-          <a-tag :color="getTaskStatusColor(computeTaskStatus(item))">
-            {{ computeTaskStatus(item) }}
-          </a-tag>
-        </a-list-item>
-      </template>
-    </a-list>
+    <div class="scroll-area">
+      <a-list :dataSource="tasks" :locale="{ emptyText: 'Chưa có công việc nào' }">
+        <template #renderItem="{ item }">
+          <a-list-item :key="item.id">
+            <a-list-item-meta
+              :title="item.tenCV"
+              :description="`Trạng thái: ${computeTaskStatus(item)}`"
+            />
+            <a-tag :color="getTaskStatusColor(computeTaskStatus(item))">
+              {{ computeTaskStatus(item) }}
+            </a-tag>
+          </a-list-item>
+        </template>
+      </a-list>
+    </div>
   </div>
   <ProjectForm ref="formRef" :editing-project="project"/>
 </template>
@@ -166,4 +168,9 @@ onMounted(loadProject);
 </script>
 
 <style scoped>
+.scroll-area {
+  height: 350px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
 </style>
