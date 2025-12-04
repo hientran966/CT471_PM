@@ -17,19 +17,19 @@
         <template #extra>
           <a-space size="middle">
             <a-button
-              type="primary"
+              type="default"
               @click="$router.push({ name: 'file', query: { taskId: taskId, projectId: projectId } })"
             >
               Xem tất cả file
             </a-button>
             <a-badge :count="pendingTransfersCount" offset="[3, 3]">
-              <a-button type="primary" @click="transferList?.showModal()">Yêu cầu</a-button>
+              <a-button type="default" @click="transferList?.showModal()">Yêu cầu</a-button>
             </a-badge>
             <a-button v-if="isCreator" type="primary" @click="assignForm?.showModal()">Phân công mới</a-button>
           </a-space>
         </template>
       </a-page-header>
-      <AssignList ref="assignListRef" :taskId="taskId" :projectId="projectId"/>
+      <AssignList ref="assignListRef" :taskId="taskId" :projectId="projectId" @updated="handleReload"/>
     </div>
   </div>
   <AssignForm ref="assignForm" :task-id="taskId" @created="handleReload" />

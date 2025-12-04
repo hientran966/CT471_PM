@@ -14,7 +14,7 @@
         <a v-if="isManager && assign.trangThai=='Chưa bắt đầu' && !view" type="link" @click="handleEdit" href="#">Sửa</a>
 
         <a-popconfirm title="Xác nhận thu hồi phân công?" @confirm="handleWithdraw" ok-text="Xác nhận" cancel-text="Hủy">
-          <a v-if="isManager && !view" type="link" href="#">Thu hồi</a>
+          <a v-if="isManager && !isAssigned && !view" type="link" href="#">Thu hồi</a>
         </a-popconfirm>
 
         <a v-if="assign.ngayNhan && isAssigned && !view" type="link" @click="reportForm?.showModal()" href="#">Cập Nhật</a>

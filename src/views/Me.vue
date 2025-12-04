@@ -19,7 +19,7 @@
                   :data-source="treeData"
                   :pagination="false"
                   :default-expand-all-rows="true"
-                  :scroll="{ x: 600 }"
+                  :scroll="{ x: 400 }"
                   :rowClassName="(record) => record.children ? 'project-row' : 'task-row'"
                   :customRow="customRow"
                 />
@@ -30,13 +30,15 @@
                 <template #title>
                   <strong>Thông báo</strong>
                 </template>
-                <a-list :data-source="announcements" bordered>
-                  <template #renderItem="{ item }">
-                    <a-list-item>
-                      <AnnouncementItem :item="item" />
-                    </a-list-item>
-                  </template>
-                </a-list>
+                <div class="scroll-area">
+                  <a-list :data-source="announcements" bordered>
+                    <template #renderItem="{ item }">
+                      <a-list-item>
+                        <AnnouncementItem :item="item" />
+                      </a-list-item>
+                    </template>
+                  </a-list>
+                </div>
               </a-card>
             </a-col>
           </a-row>
@@ -180,6 +182,12 @@ const treeColumns = [
 
 .me-avatar {
   border: 2px solid white;
+}
+
+.scroll-area {
+  height: 400px;
+  overflow-y: auto;
+  padding-right: 8px;
 }
 
 @media (max-width: 768px) {

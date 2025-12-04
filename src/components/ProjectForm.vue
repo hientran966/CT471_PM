@@ -194,6 +194,9 @@ const resetForm = () => {
 };
 
 const showModal = () => {
+  if (!props.editingProject) {
+    resetForm();
+  }
   open.value = true;
 };
 

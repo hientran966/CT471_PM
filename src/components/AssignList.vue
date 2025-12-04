@@ -75,6 +75,7 @@ import isBetween from "dayjs/plugin/isBetween";
 dayjs.extend(isBetween);
 
 const props = defineProps(['taskId', 'projectId']);
+const emit = defineEmits(["updated"]);
 
 const searchText = ref("");
 const assigns = ref([]);
@@ -195,6 +196,7 @@ const loadAssigns = async () => {
 const handleUpdated = async () => {
   await loadAssigns();
   currentPage.value = 1;
+  emit("updated");
 };
 
 watch(() => props.taskId, async () => {

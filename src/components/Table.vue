@@ -56,7 +56,7 @@
   const pagination = computed(() => ({
     total: dataSource.value?.length || 0,
     current: current.value,
-    pageSize: pageSize.value,
+    pageSize: 5,
   }));
 
   const handleTableChange: TableProps['onChange'] = (
