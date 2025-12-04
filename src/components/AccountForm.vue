@@ -2,7 +2,7 @@
   <div>
     <a-modal
       v-model:open="open"
-      title="Thông tin người dùng   "
+      title="Thông tin người dùng"
       ok-text="Lưu"
       cancel-text="Thoát"
       @ok="handleOk"
